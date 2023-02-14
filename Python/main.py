@@ -6,9 +6,7 @@ import math
 from scipy.optimize import fsolve, newton
 import CoolProp.CoolProp 
 from Fluids import LiBrSol, H2O 
-from Heat_Exchanger import *
 from Internal_Cycle_models import base_model_H2OLiBr, base_model_NH3H2O, doubleEffect_model_H2OLiBr, doubleLift_model_H2OLiBr
-import AHP
 print("--- %s seconds ---" % (time.time() - start_time))
 
 class var():
