@@ -8,6 +8,8 @@ import os
 os.environ['RPPREFIX'] = r'C:/Program Files (x86)/REFPROP'
 RP = REFPROPFunctionLibrary(os.environ['RPPREFIX'])
 
+RP_Unit = RP.GETENUMdll(iFlag=0,hEnum='MASS SI').iEnum
+print(RP_Unit)
 
 
 def NH3_conversion_w_X(direction, a):
@@ -167,34 +169,36 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     ## Rich solution (High ref. concentration)
     # Absorber
     w.NH3_rich = NH3H2O.NH3inSolution_Calc_X_PT(p.evap,T.sol_abs_out)
-    w.NH3_rich = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.evap/1000, b=T.sol_abs_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    w.NH3_rich_2 = w.NH3_rich
+    w.NH3_rich = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.evap*10**(-6), b=T.sol_abs_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
     x.NH3_rich = NH3_conversion_w_X("X",w.NH3_rich)
     x.H2O_rich = 1-x.NH3_rich
-    h.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_out, b=0, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    h.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=RP_Unit,iMass=1, iFlag=0, a=T.sol_abs_out, b=0, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]*1000
     # Pump
-    s.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "S", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_out, b=0, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    s.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "S", iUnits=RP_Unit,iMass=1, iFlag=0, a=T.sol_abs_out, b=0, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]*1000
     s.sol_pump_out = s.sol_abs_out
-    h.sol_pump_isentropic = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PS", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=s.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    h.sol_pump_isentropic = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PS", hOut= "H", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.cond*10**(-6), b=s.sol_pump_out*10**(-3), z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]*1000
     h.sol_pump_out = h.sol_abs_out - (h.sol_abs_out-h.sol_pump_isentropic)/eta.pump
-    T.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=h.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
-    cp.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "C", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=h.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    T.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=RP_Unit, iMass=1, iFlag=0, a=p.cond*10**(-6), b=h.sol_pump_out*10**(-3), z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    cp.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "CP", iUnits=RP_Unit, iMass=1, iFlag=0, a=p.cond*10**(-6), b=h.sol_pump_out*10**(-3), z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]*1000
     #-------------------------------------------------------------------------#
     ## Poor solution (Low ref. concentration)
     # Desorber
     w.NH3_poor = NH3H2O.NH3inSolution_Calc_X_PT(p.cond,T.sol_des_out)
-    w.NH3_poor = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=T.sol_des_out, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+    w.NH3_poor = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.cond*10**(-6), b=T.sol_des_out, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
     if(w.NH3_poor>0):
-        h.sol_des_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_des_out, b=0, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+        h.sol_des_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=RP_Unit,iMass=1, iFlag=0, a=T.sol_des_out, b=0, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]*1000
     else:
         h.sol_des_out = CoolProp.PropsSI('H', 'T', T.sol_des_out, 'P', p.cond, 'WATER')
     
     # SHEX
     if(T.sol_pump_out + HX.T_PP_SHEX < T.sol_des_out):
         T.sol_valve_in = T.sol_pump_out + HX.T_PP_SHEX
+        T.sol_valve_in = T.sol_des_out
     else:
         T.sol_valve_in = T.sol_des_out
 
-    h.sol_valve_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=T.sol_valve_in, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+    h.sol_valve_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "H", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.cond*10**(-6), b=T.sol_valve_in, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]*1000
     #-------------------------------------------------------------------------#
     ## Energy balances and mass conservation
     # Solve system of linear equations (energy conservation, mass conservation)
@@ -253,7 +257,7 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     # SHEX
     h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich
     try:
-        T.sol_des_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=h.sol_des_in, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+        T.sol_des_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.cond*10**(-6), b=h.sol_des_in*10**(-3), z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
     except:
         # Refprop fails for specific enthalpy values
         T.sol_des_in = T.sol_pump_out + (h.sol_des_in - h.sol_pump_out)/cp.sol_pump_out
@@ -261,7 +265,7 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     # Valve
     h.sol_abs_in = h.sol_valve_in
     try: 
-        T.sol_abs_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.evap/1000, b=h.sol_abs_in, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+        T.sol_abs_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=RP_Unit,iMass=1, iFlag=0, a=p.evap*10**(-6), b=h.sol_abs_in*10**(-3), z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
     except:
         # Refprop fails for sepcific enthalpy values
         T.sol_abs_in = T.sol_valve_in
