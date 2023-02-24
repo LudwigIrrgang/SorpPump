@@ -29,7 +29,7 @@ import numpy
 import pandas  
 import CoolProp.CoolProp as CP
 from scipy.optimize import newton, root_scalar 
-DFcal_LiBrSol = pandas.read_csv("Fluids\LiBrSol_cal.csv", sep=";")    
+DFcal_LiBrSol = pandas.read_csv(r"Python/Fluids/LiBrSol_cal.csv", sep=";")    
 
 def  Calc_cp_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     """

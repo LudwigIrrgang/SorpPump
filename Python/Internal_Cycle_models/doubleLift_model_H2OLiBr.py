@@ -193,18 +193,24 @@ def doubleLift_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     # Condenser
     T.ref_cond_in = T.ref_des_outI
     h.ref_cond_in = h.ref_des_outI
-    T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond # Subcooling as low as possible
-    h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'T',T.ref_cond_out,'Water')
+    if T.ext_cond_in + HX.T_PP_cond < T.cond:
+        T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond # Subcooling as low as possible
+        h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'T',T.ref_cond_out,'Water')
+    else:
+        T.ref_cond_out = T.cond
+        h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'Q',0,'Water')
     # Evaporator
     T.ref_evap_out = T.evap
     h.ref_evap_out = CoolProp.PropsSI('H','P',p.evap,'Q',1,'Water')
     # Subcooler (heat capacity of steam lower than liquid)
     if(T.ref_cond_out - HX.T_PP_RHEX > T.ref_evap_out):
         T.ref_abs_in = T.ref_cond_out - HX.T_PP_RHEX
+        h.ref_abs_in = CoolProp.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'Water') 
     else:
         T.ref_abs_in = T.ref_evap_out
+        h.ref_abs_in = h.ref_evap_out
 
-    h.ref_abs_in = CoolProp.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'Water') 
+    
     h.ref_valve_in = h.ref_cond_out - (h.ref_abs_in-h.ref_evap_out)
     T.ref_valve_in = CoolProp.PropsSI('T','H',h.ref_valve_in,'P',p.cond,'Water')
     # Expansion valve
@@ -277,76 +283,8 @@ def doubleLift_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     m.refI = y[5]
     m.sol_richI = y[6]
     m.sol_poorI = y[7]
-    ## Rich solution after SHEX
-    Q.SHEX = (h.sol_des_out - h.sol_valve_in)*m.sol_poor
-    h.sol_des_in = h.sol_pump_out + Q.SHEX/m.sol_rich
-    T.sat_rich_SHEX = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.mid,x.LiBr_rich)
-    h.sat_rich_SHEX = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_rich_SHEX,x.LiBr_rich)
-    if (h.sat_rich_SHEX>h.sol_des_in): # Saturation is not reached in SHEX - no evaporation
-        cp.sol_pump_out_mol = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_out,x.LiBr_rich)
-        cp.sol_pump_out = cp.sol_pump_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O)
-        T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out
-    else:
-        T.sol_des_in = LiBrSol.Calc_state_SHEX_exit(T.sat_rich_SHEX, p.mid, h.sol_des_in, m.sol_rich, w.H2O_rich, 0.01)
 
-    ## Rich solution after SHEXI
-    Q.SHEXI = (h.sol_des_outI - h.sol_valve_inI)*m.sol_poorI
-    h.sol_des_inI = h.sol_pump_outI + Q.SHEXI/m.sol_richI
-    T.sat_rich_SHEXI = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.cond,x.LiBr_richI)
-    h.sat_rich_SHEXI = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_rich_SHEXI,x.LiBr_richI)
-    if (h.sat_rich_SHEXI>h.sol_des_inI): # Saturation is not reached in SHEXI - no evaporation
-        cp.sol_pump_out_molI = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_outI,x.LiBr_richI)
-        cp.sol_pump_outI = cp.sol_pump_out_molI/(x.LiBr_richI*M_LiBr + x.H2O_richI*M_H2O)
-        T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI-h.sol_pump_outI)/cp.sol_pump_outI
-    else:
-        T.sol_des_inI = LiBrSol.Calc_state_SHEX_exit(T.sat_rich_SHEXI, p.cond, h.sol_des_inI, m.sol_richI, w.H2O_richI, 0.01)
-
-    ## Poor solution after valve
-    h.sol_abs_in = h.sol_valve_in
-    T.sat_poor_valve = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.evap,x.LiBr_poor)
-    h.sat_poor_valve = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_poor_valve,x.LiBr_poor)
-    if (h.sat_poor_valve>h.sol_abs_in): # Saturation is not reached after valve - no evaporation
-        T.sol_abs_in = T.sol_valve_in
-        h.sol_abs_in = h.sol_valve_in
-    else:
-        T.sol_abs_in = LiBrSol.Calc_state_valve_exit(T.sat_poor_valve, p.evap, h.sol_abs_in, m.sol_poor, w.H2O_poor, 0.01)
-
-    ## Poor solution I after valve
-    h.sol_abs_inI = h.sol_valve_inI
-    T.sat_poor_valveI = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.mid,x.LiBr_poorI)
-    h.sat_poor_valveI = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_poor_valveI,x.LiBr_poorI)
-    if (h.sat_poor_valveI>h.sol_abs_inI): # Saturation is not reached after valve - no evaporation
-        T.sol_abs_inI = T.sol_valve_inI
-    else:
-        T.sol_abs_inI = LiBrSol.Calc_state_valve_exit(T.sat_poor_valveI, p.mid, h.sol_abs_inI, m.sol_poorI, w.H2O_poorI, 0.01)
-
-    # ----------------------------------------------------------------------- #
-    ## Post processing
-    # Fluxes over system boundary
-    Q.des_ges = Q.des + Q.desI
-    Q.cond = (h.ref_cond_out-h.ref_cond_in)*m.refI
-    Q.evap = (h.ref_evap_out-h.ref_evap_in)*m.refI
-    Q.abs =  h.sol_abs_out*m.sol_rich - h.sol_abs_in*m.sol_poor - h.ref_abs_in*m.refI
-    Q.absI = h.sol_abs_outI*m.sol_richI - h.sol_abs_inI*m.sol_poorI - h.ref_des_out*m.ref
-    PP.W_pump = m.sol_rich*(h.sol_pump_out - h.sol_abs_out)
-    PP.W_pumpI = m.sol_richI*(h.sol_pump_outI - h.sol_abs_outI)
-    # Heat Exchanger
-    Q.RHEX = m.refI*(h.ref_abs_in-h.ref_evap_out)
-    h.RHEXideal = CoolProp.PropsSI('H','T',T.ref_cond_out,'P',p.evap,'Water')
-    eta.RHEX = (h.ref_abs_in-h.ref_evap_out)/(h.RHEXideal-h.ref_evap_out)
-    eta.SHEX = (h.sol_valve_in-h.sol_pump_out)/(h.sol_des_out-h.sol_pump_out)
-    eta.SHEXI = (h.sol_valve_inI-h.sol_pump_outI)/(h.sol_des_outI-h.sol_pump_outI)
-    # COP
-    PP.COP = Q.evap/(Q.des_ges + PP.W_pump + PP.W_pumpI)
-    # Throttle loss
-    PP.my_throttle = CoolProp.PropsSI('Q','H',h.ref_valve_in,'P',p.evap,'Water')
-    # Circulation
-    PP.f = (m.sol_rich+m.sol_richI)/(m.ref+m.refI)
-    # Energy balance
-    PP.energyBalance = Q.des_ges + Q.evap + PP.W_pump + PP.W_pumpI + Q.cond + Q.abs + Q.absI
-    # Mass balance
-    PP.massBalance = m.sol_rich - m.sol_poor - m.refI
-    # ----------------------------------------------------------------------- #
+     # ----------------------------------------------------------------------- #
     ## Check
     # Refrigerant concentrations
     if (w.H2O_rich < w.H2O_poor):
@@ -396,13 +334,62 @@ def doubleLift_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_richI,T.sol_abs_outI,"Absorber I exit")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_pump_out,"Pump exit")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_richI,T.sol_pump_outI,"PumpI exit")
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_des_in,"SHEX exit rich sol.")
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_richI,T.sol_des_inI,"SHEXI exit rich sol.")
     # Strong solution
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_des_out,"Desorber exit")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poorI,T.sol_des_outI,"DesorberI exit")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_valve_in,"SHEX exit poor sol.")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poorI,T.sol_valve_inI,"SHEXI exit poor sol.")
+
+    ## Rich solution after SHEX
+    Q.SHEX = (h.sol_des_out - h.sol_valve_in)*m.sol_poor
+    h.sol_des_in = h.sol_pump_out + Q.SHEX/m.sol_rich
+    cp.sol_pump_out_mol = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_out,x.LiBr_rich)
+    cp.sol_pump_out = cp.sol_pump_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O)
+    T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out
+
+    ## Rich solution after SHEXI
+    Q.SHEXI = (h.sol_des_outI - h.sol_valve_inI)*m.sol_poorI
+    h.sol_des_inI = h.sol_pump_outI + Q.SHEXI/m.sol_richI
+    cp.sol_pump_out_molI = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_outI,x.LiBr_richI)
+    cp.sol_pump_outI = cp.sol_pump_out_molI/(x.LiBr_richI*M_LiBr + x.H2O_richI*M_H2O)
+    T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI-h.sol_pump_outI)/cp.sol_pump_outI
+    T.sol_abs_in = T.sol_valve_in
+    h.sol_abs_in = h.sol_valve_in
+    ## Poor solution I after valve
+    h.sol_abs_inI = h.sol_valve_inI
+    T.sol_abs_inI = T.sol_valve_inI
+    # ----------------------------------------------------------------------- #
+    ## Post processing
+    # Fluxes over system boundary
+    Q.des_ges = Q.des + Q.desI
+    Q.cond = (h.ref_cond_out-h.ref_cond_in)*m.refI
+    Q.evap = (h.ref_evap_out-h.ref_evap_in)*m.refI
+    Q.abs =  h.sol_abs_out*m.sol_rich - h.sol_abs_in*m.sol_poor - h.ref_abs_in*m.refI
+    Q.absI = h.sol_abs_outI*m.sol_richI - h.sol_abs_inI*m.sol_poorI - h.ref_des_out*m.ref
+    PP.W_pump = m.sol_rich*(h.sol_pump_out - h.sol_abs_out)
+    PP.W_pumpI = m.sol_richI*(h.sol_pump_outI - h.sol_abs_outI)
+    # Heat Exchanger
+    Q.RHEX = m.refI*(h.ref_abs_in-h.ref_evap_out)
+    h.RHEXideal = CoolProp.PropsSI('H','T',T.ref_cond_out,'P',p.evap,'Water')
+    eta.RHEX = (h.ref_abs_in-h.ref_evap_out)/(h.RHEXideal-h.ref_evap_out)
+    eta.SHEX = (h.sol_valve_in-h.sol_pump_out)/(h.sol_des_out-h.sol_pump_out)
+    eta.SHEXI = (h.sol_valve_inI-h.sol_pump_outI)/(h.sol_des_outI-h.sol_pump_outI)
+    # COP
+    PP.COP = Q.evap/(Q.des_ges + PP.W_pump + PP.W_pumpI)
+    # Throttle loss
+    PP.my_throttle = CoolProp.PropsSI('Q','H',h.ref_valve_in,'P',p.evap,'Water')
+    # Circulation
+    PP.f = (m.sol_rich+m.sol_richI)/(m.ref+m.refI)
+    # Energy balance
+    PP.energyBalance = Q.des_ges + Q.evap + PP.W_pump + PP.W_pumpI + Q.cond + Q.abs + Q.absI
+    # Mass balance
+    PP.massBalance = m.sol_rich - m.sol_poor - m.refI
+   
+    # Crystallization and Violation where Patek is used
+    # Weak Solution
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_des_in,"SHEX exit rich sol.")
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_richI,T.sol_des_inI,"SHEXI exit rich sol.")
+    # Strong solution
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_abs_in,"Valve exit")
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poorI,T.sol_abs_inI,"ValveI exit")
     # Energy and mass balance

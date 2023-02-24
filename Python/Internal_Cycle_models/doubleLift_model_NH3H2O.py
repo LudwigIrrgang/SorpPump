@@ -2,6 +2,11 @@ import CoolProp.CoolProp as CoolProp
 from Fluids import NH3H2O, H2O
 import numpy
 import math
+from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
+import os
+
+os.environ['RPPREFIX'] = r'C:/Program Files (x86)/REFPROP'
+RP = REFPROPFunctionLibrary(os.environ['RPPREFIX'])
 
 def NH3_conversion_w_X(direction, a):
     """
@@ -54,6 +59,8 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     - HX.T_PP_SHEXI
     - HX.T_PP_RHEX
     - HX.T_PP_cond
+    - HX.dT_ref_des
+    - HX.dT_ref_desI
     #}
     # Output:
     #{
@@ -99,6 +106,7 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     class var:
         i = 0 
     w = var()
+    cp = var()
     PP= var()
     # ----------------------------------------------------------------------- #
     ## Calculation
@@ -110,9 +118,9 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     # ----------------------------------------------------------------------- #
     ## Refrigerant line
     # Desorber
-    T.ref_des_out = T.sol_des_out - 5
+    T.ref_des_out = T.sol_des_out - HX.dT_ref_des
     h.ref_des_out = CoolProp.PropsSI('H','T',T.ref_des_out,'P',p.mid,'AMMONIA')
-    T.ref_des_outI = T.sol_des_outI - 5
+    T.ref_des_outI = T.sol_des_outI - HX.dT_ref_desI
     h.ref_des_outI = CoolProp.PropsSI('H','T',T.ref_des_outI,'P',p.cond,'AMMONIA')
     # Condenser
     T.ref_cond_in = T.ref_des_outI
@@ -130,10 +138,11 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     # Subcooler (heat capacity of steam lower than liquid)
     if(T.ref_cond_out - HX.T_PP_RHEX > T.ref_evap_out):
         T.ref_abs_in = T.ref_cond_out - HX.T_PP_RHEX
+        h.ref_abs_in = CoolProp.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'AMMONIA')
     else:
         T.ref_abs_in = T.ref_evap_out
+        h.ref_abs_in = h.ref_evap_out
 
-    h.ref_abs_in = CoolProp.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'AMMONIA')
     h.ref_valve_in = h.ref_cond_out - (h.ref_abs_in-h.ref_evap_out)
     T.ref_valve_in = CoolProp.PropsSI('T','H',h.ref_valve_in,'P',p.cond,'AMMONIA')
     # Throttle
@@ -143,31 +152,55 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     ## Rich solution (High ref. concentration)
     # Low pressure cycle
     # Absorber
-    w.NH3_rich = NH3H2O.NH3inSolution_Calc_X_PT(p.evap/1000,T.sol_abs_out)
-    h.sol_abs_out = refpropm('H','T',T.sol_abs_out,'P',p.evap/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
-    # # Pump
-    # s.sol_abs_out = refpropm('S','T',T.sol_abs_out,'P',p.evap/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
-    # s.sol_pump_out = s.sol_abs_out
-    # h.sol_pump_isentropic = refpropm('H','P',p.mid/1000,'S',s.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
-    # h.sol_pump_out = h.sol_abs_out - (h.sol_abs_out-h.sol_pump_isentropic)/eta.pump
-    # T.sol_pump_out = refpropm('T','P',p.mid/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
+    w.NH3_rich = NH3H2O.NH3inSolution_Calc_X_PT(p.evap,T.sol_abs_out)
+    if w.NH3_rich < 0:
+        print("w_NH3_rich < 0")
+        # error("w_NH3_rich < 0")
+    
+    h.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_out, b=p.evap/1000, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    # # Pump    
+    s.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "S", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_out, b=p.evap/1000, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    s.sol_pump_out = s.sol_abs_out    
+    h.sol_pump_isentropic = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PS", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=s.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    h.sol_pump_out = h.sol_abs_out - (h.sol_abs_out-h.sol_pump_isentropic)/eta.pump    
+    T.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    cp.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "C", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
     # High pressure cycle
     # Absorber
-    w.NH3_richI = NH3H2O.NH3inSolution_Calc_X_PT(p.mid/1000,T.sol_abs_outI)
-    h.sol_abs_outI = refpropm('H','T',T.sol_abs_outI,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
+    w.NH3_richI = NH3H2O.NH3inSolution_Calc_X_PT(p.mid,T.sol_abs_outI)
+    
+    if w.NH3_richI < 0:
+        print("w_NH3_richI < 0")
+        # error("w_NH3_richI < 0")
+
+    h.sol_abs_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_outI, b=p.mid/1000, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
     # # Pump
-    s.sol_abs_outI = refpropm('S','T',T.sol_abs_outI,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
-    s.sol_pump_outI = s.sol_abs_outI
-    h.sol_pump_isentropicI = refpropm('H','P',p.cond/1000,'S',s.sol_pump_outI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
-    h.sol_pump_outI = h.sol_abs_outI - (h.sol_abs_outI-h.sol_pump_isentropicI)/eta.pump
-    T.sol_pump_outI = refpropm('T','P',p.cond/1000,'H',h.sol_pump_outI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
+    
+    s.sol_abs_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "S", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_outI, b=p.mid/1000, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
+    s.sol_pump_outI = s.sol_abs_outI   
+    h.sol_pump_isentropicI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="SP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=s.sol_pump_outI, b=p.cond/1000, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
+    h.sol_pump_outI = h.sol_abs_outI - (h.sol_abs_outI-h.sol_pump_isentropicI)/eta.pump   
+    T.sol_pump_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=h.sol_pump_outI, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
+    cp.sol_pump_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "C", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_pump_outI, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
     #-------------------------------------------------------------------------#
     ## Poor solution (Low ref. concentration)
     # High pressure
     # Desorber
-    w.NH3_poorI = NH3H2O.NH3inSolution_Calc_X_PT(p.cond/1000,T.sol_des_outI)
+    w.NH3_poorI = NH3H2O.NH3inSolution_Calc_X_PT(p.cond,T.sol_des_outI)
+    if (w.NH3_richI < w.NH3_poorI):
+        print("w_NH3_richI < w_NH3_poorI")
+        #error("w_NH3_richI < w_NH3_poorI")
+
+    if (w.NH3_richI - w.NH3_poorI < 0.001):
+        print("w_NH3_richI - w_NH3_poorI < 0.001")
+        #error("w_NH3_richI - w_NH3_poorI < 0.001")
+        
+    if (w.NH3_poorI < 0):
+        print("w_NH3_poorI < 0")
+        #error("w_NH3_poorI < 0")
+   
     if(w.NH3_poorI>0):
-        h.sol_des_outI = NH3H2O.Calc_h_liquid_from_T_X_NH3H2O_Patek(T.sol_des_outI, NH3_conversion_w_X("X", w.NH3_poorI))
+        h.sol_des_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_des_outI, b=0, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
     else:
         h.sol_des_outI = H2O.Calc_h_from_T_p_H2O_Patek(T.sol_des_outI, p.cond*10**(-6))
     # SHEX
@@ -176,14 +209,25 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     else:
         T.sol_valve_inI = T.sol_des_outI
 
-    h.sol_valve_inI = refpropm('H','T',T.sol_valve_inI,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_poorI (1-w.NH3_poorI)])
+    h.sol_valve_inI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_valve_inI, b=p.cond/1000, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
     # Low pressure
     # Poor solution leaving desorber
-    w.NH3_poor = NH3H2O.NH3inSolution_Calc_X_PT(p.mid/1000,T.sol_des_out)
-    if(w.NH3_poor>0):
-        h.sol_des_out = NH3H2O.Calc_h_liquid_from_T_X_NH3H2O_Patek(T.sol_des_out, NH3_conversion_w_X("X", w.NH3_poor))
-    else:
+    w.NH3_poor = NH3H2O.NH3inSolution_Calc_X_PT(p.mid,T.sol_des_out)
+    if (w.NH3_rich < w.NH3_poor):
+        print("w_NH3_rich < w_NH3_poor")
+        #error("w_NH3_rich < w_NH3_poor")
 
+    if (w.NH3_poor < 0):
+        print("w_NH3_poor < 0")
+        #error("w_NH3_poor < 0")
+
+    if (w.NH3_rich - w.NH3_poor < 0.001):
+        print("w_NH3_rich - w_NH3_poor < 0.001")
+       # error("w_NH3_rich - w_NH3_poor < 0.001")
+
+    if(w.NH3_poor>0):
+        h.sol_des_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_des_out, b=0, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+    else:
         h.sol_des_out = H2O.Calc_h_from_T_p_H2O_Patek(T.sol_des_out, p.cond*10**(-6))
 
     # SHEX
@@ -192,30 +236,30 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     else:
         T.sol_valve_in = T.sol_des_out
 
-    h.sol_valve_in = refpropm('H','T',T.sol_valve_in,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)])
+    h.sol_valve_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_valve_in, b=p.mid/1000, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
     #-------------------------------------------------------------------------#
     ## Energy balances and mass conservation
     # Solve system of linear equations (energy conservation, mass conservation)
     # Solution vector: Q.des, m.ref, m.sol_rich, m.sol_poor, Q.desI, m.refI, m.sol_richI, m.sol_poorI
     match s.requirement:
         case 'Q_des':
-            A = numpy.array([[   1,      0,              0,              0,                  1,  0,                  0,                  0]
-                    [0,      -1,             1,              -1,                 0,  0,                  0,                  0]
-                    [1,      -h.ref_des_out, h.sol_pump_out, -h.sol_valve_in,    0,  0,                  0,                  0]
-                   [ 0,      -1,             w.NH3_rich,     -w.NH3_poor,        0,  0,                  0,                  0]
-                   [ 0,      0,              0,              0,                  0,  -1,                 1,                  -1]
-                    [0,      0,              0,              0,                  1,  -h.ref_des_outI,    h.sol_pump_outI,    -h.sol_valve_inI]
-                    [0,      0,              0,              0,                  0,  -1,                 w.NH3_richI,        -w.NH3_poorI]
+            A = numpy.array([[   1,      0,              0,              0,                  1,  0,                  0,                  0],
+                    [0,      -1,             1,              -1,                 0,  0,                  0,                  0],
+                    [1,      -h.ref_des_out, h.sol_pump_out, -h.sol_valve_in,    0,  0,                  0,                  0],
+                   [ 0,      -1,             w.NH3_rich,     -w.NH3_poor,        0,  0,                  0,                  0],
+                   [ 0,      0,              0,              0,                  0,  -1,                 1,                  -1],
+                    [0,      0,              0,              0,                  1,  -h.ref_des_outI,    h.sol_pump_outI,    -h.sol_valve_inI],
+                    [0,      0,              0,              0,                  0,  -1,                 w.NH3_richI,        -w.NH3_poorI],
                     [0,      1,              0,              0,                  0,  -1,                 0,                  0   ]])
             b = numpy.array([   Q.dec,  0,              0   ,           0     ,             0 , 0    ,              0    ,              0   ])
         case 'Q_evap':
-            A = numpy.array([[   1,      0,              0,              0,                  0,  (h.ref_evap_out-h.ref_evap_in), 0,                  0]
-                    [0,      -1,             1,              -1,                 0,  0,                              0,                  0]
-                    [1,      -h.ref_des_out, h.sol_pump_out, -h.sol_valve_in,    0,  0,                              0,                  0]
-                    [0,      -1,             w.NH3_rich,     -w.NH3_poor,        0,  0,                              0,                  0]
-                    [0,      0,              0,              0,                  0,  -1,                             1,                  -1]
-                    [0,      0,              0,              0,                  1,  -h.ref_des_outI,                h.sol_pump_outI,    -h.sol_valve_inI]
-                   [ 0,      0,              0,              0,                  0,  -1,                             w.NH3_richI,        -w.NH3_poorI]
+            A = numpy.array([[   1,      0,              0,              0,                  0,  (h.ref_evap_out-h.ref_evap_in), 0,                  0],
+                    [0,      -1,             1,              -1,                 0,  0,                              0,                  0],
+                    [1,      -h.ref_des_out, h.sol_pump_out, -h.sol_valve_in,    0,  0,                              0,                  0],
+                    [0,      -1,             w.NH3_rich,     -w.NH3_poor,        0,  0,                              0,                  0],
+                    [0,      0,              0,              0,                  0,  -1,                             1,                  -1],
+                    [0,      0,              0,              0,                  1,  -h.ref_des_outI,                h.sol_pump_outI,    -h.sol_valve_inI],
+                   [ 0,      0,              0,              0,                  0,  -1,                             w.NH3_richI,        -w.NH3_poorI],
                     [0,      1,              0,              0,                  0,  -1,                             0,                  0   ]])
             b = numpy.array([   Q.dec,  0,              0,              0 ,                 0 , 0      ,                        0       ,           0   ])
         case _:
@@ -233,47 +277,49 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     m.refI = y[5]
     m.sol_richI = y[6]
     m.sol_poorI = y[7]
+    # ----------------------------------------------------------------------- #
+    ## Check
+    # Mass flows
+    if (m.ref<0 or m.sol_poor<0 or m.sol_rich<0):
+        print("mass flow is negativ")
+        #error("mass flow is negativ")
+
+    if (m.refI<0 or m.sol_poorI<0 or m.sol_richI<0):
+        print("mass flow I is negativ")
+        #error("mass flow I is negativ")
     ## Strong solution after SHEX
     # Low pressure
     h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich
+   
+    try:
+        T.sol_des_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_des_in, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+    except:
+        # in case refprop fails for specific enthalpy values
+        T.sol_des_in =  T.sol_pump_out + (h.sol_des_in -h.sol_pump_out)/cp.sol_pump_out
     
-    T.sat_rich_SHEX = NH3H2O.Calc_T_from_p_X_NH3H2OSol_Patek(p.mind*10**(-6), NH3_conversion_w_X("X", w.NH3_rich))
-    h.sat_rich_SHEX = refpropm('H','T',T.sat_rich_SHEX,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
-
-    if (h.sat_rich_SHEX>h.sol_des_in): # Saturation is not reached in SHEX - no evaporation
-        T.sol_des_in = refpropm('T','P',p.mid/1000,'H',h.sol_des_in,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)])
-    else:
-        T.sol_des_in = NH3H2O.NH3inSolution_Calc_state_SHEX_exit(T.sat_rich_SHEX, p.mid, h.sol_des_in, m.sol_rich, w.NH3_rich, 0.1)
-
     # High pressure
     h.sol_des_inI = (m.sol_poorI*h.sol_des_outI + m.sol_richI*h.sol_pump_outI - m.sol_poorI*h.sol_valve_inI) / m.sol_richI
-    T.sat_rich_SHEXI = NH3H2O.Calc_T_from_p_X_NH3H2OSol_Patek(p.cond*10**(-6), NH3_conversion_w_X("X", w.NH3_richI))
-    h.sat_rich_SHEXI = refpropm('H','T',T.sat_rich_SHEXI,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
-    if (h.sat_rich_SHEXI>h.sol_des_inI): # Saturation is not reached in SHEX - no evaporation
-        T.sol_des_inI = refpropm('T','P',p.cond/1000,'H',h.sol_des_inI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)])
-    else:
-        T.sol_des_inI = NH3H2O.NH3inSolution_Calc_state_SHEX_exit(T.sat_rich_SHEXI, p.cond, h.sol_des_inI, m.sol_richI, w.NH3_richI, 0.1)
-
+    try:
+        T.sol_des_inI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=h.sol_des_inI, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
+    except:
+        T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI -h.sol_pump_outI)/cp.sol_pump_outI
+    
     ## Poor solution after valve
     # Low pressure
     h.sol_abs_in = h.sol_valve_in
-    T.sat_poor_valve = NH3H2O.Calc_T_from_p_X_NH3H2OSol_Patek(p.evap*10**(-6), NH3_conversion_w_X("X", w.NH3_poor))
-    h.sat_poor_valve = refpropm('H','T',T.sat_poor_valve,'P',p.evap/1000,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)])
-    if (h.sat_poor_valve>h.sol_abs_in): # Saturation is not reached after valve - no evaporation
-        T.sol_abs_in = T.sol_valve_in
-    else:
-        T.sol_abs_in = NH3H2O.NH3inSolution_Calc_state_valve_exit(T.sat_poor_valve, p.evap, h.sol_abs_in, m.sol_poor, w.NH3_poor, 0.1)
-
+    try:
+        T.sol_abs_in = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.evap/1000, b=h.sol_abs_in, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+    except:
+        #Refprop fails for specific enthalpy values
+        T.sol_abs_in = T.sol_valve_in    
+    
     # High pressure
     h.sol_abs_inI = h.sol_valve_inI
-
-    T.sat_poor_valveI = NH3H2O.Calc_T_from_p_X_NH3H2OSol_Patek(p.mind*10**(-6), NH3_conversion_w_X("X", w.NH3_poorI))
-    h.sat_poor_valveI = refpropm('H','T',T.sat_poor_valveI,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_poorI (1-w.NH3_poorI)])
-    if (h.sat_poor_valveI>h.sol_abs_inI): # Saturation is not reached after valve - no evaporation
+    try:
+        T.sol_abs_inI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "T", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_abs_inI, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
+    except:
         T.sol_abs_inI = T.sol_valve_inI
-    else:
-        T.sol_abs_inI = NH3H2O.NH3inSolution_Calc_state_valve_exit(T.sat_poor_valveI, p.mid, h.sol_abs_inI, m.sol_poorI, w.NH3_poorI, 0.1)
-  
+
     #-------------------------------------------------------------------------#
     ## Post processing
     # Fluxes over system boundary
@@ -304,48 +350,6 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     PP.massBalance = m.ref + m.sol_poor - m.sol_rich + m.refI + m.sol_poorI - m.sol_richI
     # ----------------------------------------------------------------------- #
     ## Check
-    # Refrigerant concentrations
-    if (w.NH3_rich < w.NH3_poor):
-        print("w_NH3_rich < w_NH3_poor")
-        #error("w_NH3_rich < w_NH3_poor")
-
-    if (w.NH3_rich < 0):
-        print("w_NH3_rich < 0")
-        #error("w_NH3_rich < 0")
-
-    if (w.NH3_poor < 0):
-        print("w_NH3_poor < 0")
-        #error("w_NH3_poor < 0")
-
-    if (w.NH3_rich - w.NH3_poor < 0.001):
-        print("w_NH3_rich - w_NH3_poor < 0.001")
-       # error("w_NH3_rich - w_NH3_poor < 0.001")
-
-    if (w.NH3_richI < w.NH3_poorI):
-        print("w_NH3_richI < w_NH3_poorI")
-       # error("w_NH3_richI < w_NH3_poorI")
-
-    if (w.NH3_richI < 0):
-        print("w_NH3_richI < 0")
-        #error("w_NH3_richI < 0")
-
-    if (w.NH3_poorI < 0):
-        print("w_NH3_poorI < 0")
-        #error("w_NH3_poorI < 0")
-
-    if (w.NH3_richI - w.NH3_poorI < 0.001):
-        print("w_NH3_richI - w_NH3_poorI < 0.001")
-        #error("w_NH3_richI - w_NH3_poorI < 0.001")
-
-    # Mass flows
-    if (m.ref<0 or m.sol_poor<0 or m.sol_rich<0):
-        print("mass flow is negativ")
-        #error("mass flow is negativ")
-
-    if (m.refI<0 or m.sol_poorI<0 or m.sol_richI<0):
-        print("mass flow I is negativ")
-        #error("mass flow I is negativ")
-
     # Energy and mass balance
     if (abs(PP.energyBalance) > 1):
         print("Energy is not conserved")

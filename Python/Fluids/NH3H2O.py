@@ -1,5 +1,11 @@
 import math
+import sys
 from scipy.optimize import newton, ridder, bisect
+from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
+import os
+
+os.environ['RPPREFIX'] = r'C:/Program Files (x86)/REFPROP'
+RP = REFPROPFunctionLibrary(os.environ['RPPREFIX'])
 
 def NH3_conversion_w_X(direction, a):
     """
@@ -485,6 +491,7 @@ def NH3inSolution_Calc_X_PT(pressure, Temp):
     b = 0.001
     try:
         minPressure = Calc_p_from_T_X(Temp,NH3_conversion_w_X("X", b))
+        #minPressure = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "P", iUnits=2,iMass=1, iFlag=0, a=Temp, b=0, z=[b, (1-b)]).Output[0] *1000
     except:
         print("Calculation failed in two phase region - only water in solution")
         wNH3 = 0 # only water present in solution
@@ -494,8 +501,8 @@ def NH3inSolution_Calc_X_PT(pressure, Temp):
         print('Pressure not in two phase region')
         wNH3 = 0
     else:
-        f = lambda w : pressure - Calc_p_from_T_X(Temp,NH3_conversion_w_X("X", w))
-        while abs(f(b))> 0.1: # coresponds to 0.1 kPa
+        f = lambda w : pressure - Calc_p_from_T_X(Temp,NH3_conversion_w_X("X", w)) #- RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "P", iUnits=2,iMass=1, iFlag=0, a=Temp, b=0, z=[w, (1-w)]).Output[0]*1000 #
+        while abs(f(b))> 10: # coresponds to 0.1 kPa
             if f((a+b)/2)<0: # half slitting technique
                 a = (a+b)/2
             else:
@@ -503,6 +510,46 @@ def NH3inSolution_Calc_X_PT(pressure, Temp):
             i = i + 1
             if (i>1000):
                 print('Concentration can not be calculated - loop exceeded limits')
+        wNH3 = b
+    
+    return wNH3
+
+def NH3inSolution_Calc_X_PT_REFPROP(pressure, Temp):
+    """
+    % ---------------------------------------------------------------------- %
+    % NH3inSolution_Calc_X_PT
+    % Since the solution is heated above saturation, some refrigerant must be
+    % This function calculates the concentration of the saturated NH3-H2O
+    % solution from pressure and temperature
+    % Input units: Pressure [Pa], Tempreature [K]
+    % ---------------------------------------------------------------------- %
+    """
+    ## Caluclation
+    i = 0
+    a = 0.999
+    b = 0.001
+    try:
+        #minPressure = Calc_p_from_T_X(Temp,NH3_conversion_w_X("X", b))
+        minPressure = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "P", iUnits=2,iMass=1, iFlag=0, a=Temp, b=0, z=[b, (1-b)]).Output[0] *1000
+    except:
+        print("Calculation failed in two phase region - only water in solution")
+        wNH3 = 0 # only water present in solution
+        return wNH3
+    
+    if minPressure > pressure:
+        print('Pressure not in two phase region')
+        wNH3 = 0
+    else:
+        f = lambda w : pressure - RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut= "P", iUnits=2,iMass=1, iFlag=0, a=Temp, b=0, z=[w, (1-w)]).Output[0]*1000 #
+        while abs(f(b))> 10: # coresponds to 0.1 kPa
+            if f((a+b)/2)<0: # half slitting technique
+                a = (a+b)/2
+            else:
+                b = (a+b)/2
+            i = i + 1
+            if (i>1000):
+                print('Concentration can not be calculated - loop exceeded limits')
+                sys.exit()
         wNH3 = b
     
     return wNH3

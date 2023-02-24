@@ -181,10 +181,11 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     # Subcooler (heat capacity of steam lower than liquid)
     if(T.ref_cond_out - HX.T_PP_RHEX) > T.ref_evap_out:
         T.ref_abs_in = T.ref_cond_out - HX.T_PP_RHEX 
+        h.ref_abs_in = CP.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'Water')
     else:
         T.ref_abs_in = T.ref_evap_out 
-
-    h.ref_abs_in = CP.PropsSI('H','T',T.ref_abs_in,'P',p.evap,'Water')  
+        h.ref_abs_in = h.ref_evap_out
+ 
     h.ref_valve_in = h.ref_cond_out - (h.ref_abs_in-h.ref_evap_out) 
     T.ref_valve_in = CP.PropsSI('T','H',h.ref_valve_in,'P',p.cond,'Water') 
     # Throttle
@@ -225,28 +226,46 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     m.sol_rich = y[0] 
     m.ref = y[1] 
     m.sol_poor = y[2]
+
+    #------------------------------------------------------------------------- #
+    # # Check
+    # Refrigerant concentrations
+    if w.H2O_rich < w.H2O_poor:
+        print("w_H2O_rich < w_H2O_poor") # error
+
+    if w.H2O_rich < 0:
+        print("w_H2O_rich < 0") #error
+
+    if w.H2O_poor < 0:
+        print("w_H2O_poor < 0") #error
+
+    if (w.H2O_rich - w.H2O_poor) < 0.005:
+        print("w_H2O_rich - w_H2O_poor < 0.005") #error
+
+    # Mass flow
+    if m.ref<0 or m.sol_poor<0 or m.sol_rich<0 :
+        print("mass flow is negativ") #error
+
+    # Crystallization and Violation where Patek is used
+    # Weak Solution
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_abs_out,"Absorber exit") 
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_pump_out,"Pump exit") 
+
+     # Strong solution
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_des_out,"Desorber exit") 
+    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_valve_in,"SHEX exit poor sol.") 
+
     # # Rich solution after SHEX
     Q.SHEX = (h.sol_des_out - h.sol_valve_in)*m.sol_poor 
     h.sol_des_in = h.sol_pump_out + Q.SHEX/m.sol_rich 
-
-    T.sat_rich_SHEX = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.cond,x.LiBr_rich) 
-    h.sat_rich_SHEX = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_rich_SHEX,x.LiBr_rich) 
-    if h.sat_rich_SHEX>h.sol_des_in:  # Saturation is not reached in SHEX - no evaporation
-        cp.sol_pump_out_mol = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_out,x.LiBr_rich) 
-        cp.sol_pump_out = cp.sol_pump_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O) 
-        T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out 
-    else:
-        T.sol_des_in = LiBrSol.Calc_state_SHEX_exit(T.sat_rich_SHEX, p.cond, h.sol_des_in, m.sol_rich, w.H2O_rich, 0.01) 
+    cp.sol_pump_out_mol = LiBrSol.Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_out,x.LiBr_rich) 
+    cp.sol_pump_out = cp.sol_pump_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O) 
+    T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out 
 
     # # Poor solution after valve
     h.sol_abs_in = h.sol_valve_in 
-    T.sat_poor_valve = LiBrSol.Calc_T_from_p_X_satLiBrSol_Patek(p.evap,x.LiBr_poor) 
-    h.sat_poor_valve = LiBrSol.Calc_h_from_T_X_LiBrSol_Patek(T.sat_poor_valve,x.LiBr_poor) 
-    if h.sat_poor_valve>h.sol_abs_in:  # Saturation is not reached after valve - no evaporation
-        T.sol_abs_in = T.sol_valve_in 
-    else:
-        T.sol_abs_in = LiBrSol.Calc_state_valve_exit(T.sat_poor_valve, p.evap, h.sol_abs_in, m.sol_poor, w.H2O_poor, 0.01) 
-
+    T.sol_abs_in = T.sol_valve_in 
+   
     #------------------------------------------------------------------------- #
     # # Post processing
     # Fluxes over system boundary
@@ -293,33 +312,11 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     PP.energyBalance = Q.des + Q.evap + PP.W_pump + Q.cond + Q.abs 
     # Mass balance
     PP.massBalance = m.ref + m.sol_poor - m.sol_rich 
-    #------------------------------------------------------------------------- #
-    # # Check
-    # Refrigerant concentrations
-    if w.H2O_rich < w.H2O_poor:
-        print("w_H2O_rich < w_H2O_poor") # error
-
-    if w.H2O_rich < 0:
-        print("w_H2O_rich < 0") #error
-
-    if w.H2O_poor < 0:
-        print("w_H2O_poor < 0") #error
-
-    if (w.H2O_rich - w.H2O_poor) < 0.005:
-        print("w_H2O_rich - w_H2O_poor < 0.005") #error
-
-    # Mass flow
-    if m.ref<0 or m.sol_poor<0 or m.sol_rich<0 :
-        print("mass flow is negativ") #error
-
+    
     # Crystallization and Violation where Patek is used
     # Weak Solution
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_abs_out,"Absorber exit") 
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_pump_out,"Pump exit") 
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_des_in,"SHEX exit rich sol.") 
-    # Strong solution
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_des_out,"Desorber exit") 
-    LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_valve_in,"SHEX exit poor sol.") 
+    # Strong solution 
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_abs_in,"Valve exit") 
     # Energy and mass balance
     if abs(PP.energyBalance) > 0.1:
