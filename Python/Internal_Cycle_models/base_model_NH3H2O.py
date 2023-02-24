@@ -194,7 +194,6 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     # SHEX
     if(T.sol_pump_out + HX.T_PP_SHEX < T.sol_des_out):
         T.sol_valve_in = T.sol_pump_out + HX.T_PP_SHEX
-        T.sol_valve_in = T.sol_des_out
     else:
         T.sol_valve_in = T.sol_des_out
 
