@@ -153,6 +153,8 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     # Low pressure cycle
     # Absorber
     w.NH3_rich = NH3H2O.NH3inSolution_Calc_X_PT(p.evap,T.sol_abs_out)
+    w.NH3_rich = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.evap/1000, b=T.sol_abs_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
+
     if w.NH3_rich < 0:
         print("w_NH3_rich < 0")
         # error("w_NH3_rich < 0")
@@ -167,7 +169,8 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     cp.sol_pump_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PH", hOut= "C", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=h.sol_pump_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
     # High pressure cycle
     # Absorber
-    w.NH3_richI = NH3H2O.NH3inSolution_Calc_X_PT(p.mid,T.sol_abs_outI)
+    w.NH3_richI = NH3H2O.NH3inSolution_Calc_X_PT(p.mid,T.sol_abs_outI)    
+    w.NH3_richI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=T.sol_des_outI, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
     
     if w.NH3_richI < 0:
         print("w_NH3_richI < 0")
@@ -187,6 +190,8 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     # High pressure
     # Desorber
     w.NH3_poorI = NH3H2O.NH3inSolution_Calc_X_PT(p.cond,T.sol_des_outI)
+    w.NH3_poorI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=T.sol_des_outI, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
+    
     if (w.NH3_richI < w.NH3_poorI):
         print("w_NH3_richI < w_NH3_poorI")
         #error("w_NH3_richI < w_NH3_poorI")
@@ -213,6 +218,8 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     # Low pressure
     # Poor solution leaving desorber
     w.NH3_poor = NH3H2O.NH3inSolution_Calc_X_PT(p.mid,T.sol_des_out)
+    w.NH3_poor = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=T.sol_des_out, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+    
     if (w.NH3_rich < w.NH3_poor):
         print("w_NH3_rich < w_NH3_poor")
         #error("w_NH3_rich < w_NH3_poor")

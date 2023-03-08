@@ -193,6 +193,7 @@ def doubleEffect_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     # Low pressure
     # Desorber
     w.NH3_poor = NH3H2O.NH3inSolution_Calc_X_PT(p.cond,T.sol_des_out)
+    w.NH3_poor = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond_int/1000, b=T.sol_des_out, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
     
     if (w.NH3_poor < 0):
         print("w_NH3_poor < 0")
@@ -222,8 +223,11 @@ def doubleEffect_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     # Desober
     try:
         w.NH3_poorI = NH3H2O.NH3inSolution_Calc_X_PT(p.cond_int,T.sol_des_outI)
+        w.NH3_poorI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond_int/1000, b=T.sol_des_outI, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
+        test = "sucess"
     except:
         w.NH3_poorI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond_int/1000, b=T.sol_des_outI, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
+        test = "fail"
     
     if (w.NH3_rich < w.NH3_poorI):
         print("w_NH3_rich < w_NH3_poorI")
