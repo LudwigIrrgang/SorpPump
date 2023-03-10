@@ -1,29 +1,3 @@
-# class LiBrSol:
-#     """
-#     Class containing the calculations for the LiBr-H2O solution
-#     """
-#     def __init__( np, CP, newton, math, newton, pandas):
-#         """
-#         Initialisation of the used moduels. 
-#         The needen models are:
-#             - numpy
-#             - CoolProp
-#             - the function newton of the scipy package
-#             - math
-#             - the funciton newton o the scipy package
-#             - pandas
-#         To improve performance, the moduels are imported once and will be provided to the class at initialisation.
-        
-#         In Addition the look up table of starting values for solving the invers functions is imported 
-#         and stored in a data frame.
-#         """
-#         np= np
-#         CP = CP
-#         newton = newton
-#         math = math
-#         newton = newton
-#         pd = pandas
-#         DFcal =  pd.read_csv("01_Class_approach\LiBrSol\LiBrSol_cal.csv", sep = ";")
 import math
 import numpy
 import pandas  

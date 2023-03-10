@@ -4,6 +4,7 @@ import numpy
 import math
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import os
+import sys
 
 os.environ['RPPREFIX'] = r'C:/Program Files (x86)/REFPROP'
 RP = REFPROPFunctionLibrary(os.environ['RPPREFIX'])
@@ -156,7 +157,7 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     w.NH3_rich = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.evap/1000, b=T.sol_abs_out, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
 
     if w.NH3_rich < 0:
-        print("w_NH3_rich < 0")
+        sys.exit("w_NH3_rich < 0")
         # error("w_NH3_rich < 0")
     
     h.sol_abs_out = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_out, b=p.evap/1000, z=[w.NH3_rich, (1-w.NH3_rich)]).Output[0]
@@ -173,7 +174,7 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     w.NH3_richI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=T.sol_des_outI, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
     
     if w.NH3_richI < 0:
-        print("w_NH3_richI < 0")
+        sys.exit("w_NH3_richI < 0")
         # error("w_NH3_richI < 0")
 
     h.sol_abs_outI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TP", hOut= "H", iUnits=2,iMass=1, iFlag=0, a=T.sol_abs_outI, b=p.mid/1000, z=[w.NH3_richI, (1-w.NH3_richI)]).Output[0]
@@ -193,15 +194,15 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     w.NH3_poorI = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.cond/1000, b=T.sol_des_outI, z=[w.NH3_poorI, (1-w.NH3_poorI)]).Output[0]
     
     if (w.NH3_richI < w.NH3_poorI):
-        print("w_NH3_richI < w_NH3_poorI")
+        sys.exit("w_NH3_richI < w_NH3_poorI")
         #error("w_NH3_richI < w_NH3_poorI")
 
     if (w.NH3_richI - w.NH3_poorI < 0.001):
-        print("w_NH3_richI - w_NH3_poorI < 0.001")
+        sys.exit("w_NH3_richI - w_NH3_poorI < 0.001")
         #error("w_NH3_richI - w_NH3_poorI < 0.001")
         
     if (w.NH3_poorI < 0):
-        print("w_NH3_poorI < 0")
+        sys.exit("w_NH3_poorI < 0")
         #error("w_NH3_poorI < 0")
    
     if(w.NH3_poorI>0):
@@ -221,15 +222,15 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     w.NH3_poor = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="PT", hOut= "XMASS", iUnits=2,iMass=1, iFlag=0, a=p.mid/1000, b=T.sol_des_out, z=[w.NH3_poor, (1-w.NH3_poor)]).Output[0]
     
     if (w.NH3_rich < w.NH3_poor):
-        print("w_NH3_rich < w_NH3_poor")
+        sys.exit("w_NH3_rich < w_NH3_poor")
         #error("w_NH3_rich < w_NH3_poor")
 
     if (w.NH3_poor < 0):
-        print("w_NH3_poor < 0")
+        sys.exit("w_NH3_poor < 0")
         #error("w_NH3_poor < 0")
 
     if (w.NH3_rich - w.NH3_poor < 0.001):
-        print("w_NH3_rich - w_NH3_poor < 0.001")
+        sys.exit("w_NH3_rich - w_NH3_poor < 0.001")
        # error("w_NH3_rich - w_NH3_poor < 0.001")
 
     if(w.NH3_poor>0):
@@ -270,7 +271,7 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
                     [0,      1,              0,              0,                  0,  -1,                             0,                  0   ]])
             b = numpy.array([   Q.dec,  0,              0,              0 ,                 0 , 0      ,                        0       ,           0   ])
         case _:
-            print('AKM decider is not defined properly. Use Q_des or Q_evap')
+            sys.exit('AKM decider is not defined properly. Use Q_des or Q_evap')
             #error('AKM decider is not defined properly. Use Q_des or Q_evap')
 
     y = numpy.linalg.solve(A,b)
@@ -288,11 +289,11 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     ## Check
     # Mass flows
     if (m.ref<0 or m.sol_poor<0 or m.sol_rich<0):
-        print("mass flow is negativ")
+        sys.exit("mass flow is negativ")
         #error("mass flow is negativ")
 
     if (m.refI<0 or m.sol_poorI<0 or m.sol_richI<0):
-        print("mass flow I is negativ")
+        sys.exit("mass flow I is negativ")
         #error("mass flow I is negativ")
     ## Strong solution after SHEX
     # Low pressure
@@ -359,11 +360,11 @@ def doubleLift_model_NH3H2O(T,p, h, m,eta, Q, HX,s):
     ## Check
     # Energy and mass balance
     if (abs(PP.energyBalance) > 1):
-        print("Energy is not conserved")
+        sys.exit("Energy is not conserved")
         #error("Energy is not conserved")
 
     if (abs(PP.massBalance) > 1):
-        print("Mass is not conserved")
+        sys.exit("Mass is not conserved")
         #error("Mass is not conserved")
 
     #-------------------------------------------------------------------------#

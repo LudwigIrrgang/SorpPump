@@ -509,7 +509,7 @@ def NH3inSolution_Calc_X_PT(pressure, Temp):
                 b = (a+b)/2
             i = i + 1
             if (i>1000):
-                print('Concentration can not be calculated - loop exceeded limits')
+                sys.exit('Concentration can not be calculated - loop exceeded limits')
         wNH3 = b
     
     return wNH3
@@ -549,7 +549,7 @@ def NH3inSolution_Calc_X_PT_REFPROP(pressure, Temp):
             i = i + 1
             if (i>1000):
                 print('Concentration can not be calculated - loop exceeded limits')
-                sys.exit()
+                sys.exit('Concentration can not be calculated - loop exceeded limits')
         wNH3 = b
     
     return wNH3
@@ -586,7 +586,7 @@ def NH3inSolution_Calc_X_HT(Enthalpy, Temp):
                 b = (a+b)/2
             i = i + 1
             if (i>1000):
-                print('Concentration can not be calculated - loop exceeded limits')
+                sys.exit('Concentration can not be calculated - loop exceeded limits')
         wNH3 = b
     
     return wNH3

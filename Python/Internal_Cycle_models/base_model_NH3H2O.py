@@ -4,6 +4,7 @@ import numpy
 import math
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import os
+import sys
 
 #---------------------------------------------------------------------------#
 # Implementation of the REFPROP Python Wrapper
@@ -14,7 +15,7 @@ os.environ['RPPREFIX'] = r'C:/Program Files (x86)/REFPROP'
 RP = REFPROPFunctionLibrary(os.environ['RPPREFIX'])
 
 RP_Unit = RP.GETENUMdll(iFlag=0,hEnum='MASS SI').iEnum
-print(RP_Unit)
+
 
 
 def NH3_conversion_w_X(direction, a):
@@ -219,43 +220,43 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
                     [1,          -1,                             -1   ]])
             b = numpy.array([   Q.dec  ,   0,      0   ])
         case _:
-            print('AKM requirement is not defined properly. Use Q_des or Q_evap')
+            sys.exit('AKM requirement is not defined properly. Use Q_des or Q_evap')
              # error('AKM requirement is not defined properly. Use Q_des or Q_evap')
     try:
         y = numpy.linalg.solve(A,b)
         m.sol_rich = y[0]
         m.ref = y[1]
         m.sol_poor = y[2]
-        print("linalg.solve")
+    
     except:
         y = numpy.linalg.lstsq(A,b)[0]
         m.sol_rich = y[0]
         m.ref = y[1]
         m.sol_poor = y[2]
-        print("linalg.lstsq")
+
 
     #-------------------------------------------------------------------------#
     ## Check
     # Refrigerant concentrations
     if (w.NH3_rich < w.NH3_poor):
-        print("w_NH3_rich  < w_NH3_poor ")
+        sys.exit("w_NH3_rich  < w_NH3_poor ")
         #error("w_NH3_rich < w_NH3_poor")
     
     if (w.NH3_rich < 0):
-        print("w_NH3_rich < 0")
+        sys.exit("w_NH3_rich < 0")
         #error("w_NH3_rich < 0")
     
     if (w.NH3_poor < 0):
-        print("w_NH3_poor < 0")
+        sys.exit("w_NH3_poor < 0")
         #error("w_NH3_poor < 0")
     
     if (w.NH3_rich - w.NH3_poor < 0.001):
-        print("w_NH3_rich - w_NH3_poor < 0.001")
+        sys.exit("w_NH3_rich - w_NH3_poor < 0.001")
         #error("w_NH3_rich - w_NH3_poor < 0.001")
     
     # Mass flows
     if (m.ref<0 or m.sol_poor<0 or m.sol_rich<0):
-        print("mass flow is negativ")
+        sys.exit("mass flow is negativ")
        # error("mass flow is negativ")
     
     # SHEX
@@ -300,11 +301,11 @@ def base_model_NH3H2O(T, p, h, m, eta, Q, HX, s):
     ## Check
     # Energy and mass balance
     if (abs(PP.energyBalance) > 1):
-        print("Energy is not conserved")
+        sys.exit("Energy is not conserved")
       #  error("Energy is not conserved")
     
     if (abs(PP.massBalance) > 1):
-        print("Mass is not conserved")
+        sys.exit("Mass is not conserved")
        # error("Mass is not conserved")
     
     #-------------------------------------------------------------------------#

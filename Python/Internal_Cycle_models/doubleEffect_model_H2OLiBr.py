@@ -2,6 +2,7 @@ import CoolProp.CoolProp as CoolProp
 import math
 import numpy
 from Fluids import LiBrSol, NH3H2O, H2O
+import sys
 
 
 def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
@@ -256,7 +257,7 @@ def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
                 [    0,          0,  -1,                                 1,              -1,                 0,                                  0,              0 ]  ])
             b = numpy.array([   Q.dec,      0,  0,                                  0,              0,                  0,                                  0,              0   ])
         case _:
-            print('AKM decider is not defined properly. Use Q_des or Q_evap')
+            sys.exit('AKM decider is not defined properly. Use Q_des or Q_evap')
             #error('AKM decider is not defined properly. Use Q_des or Q_evap')
 
     y = numpy.linalg.solve(A,b) # replacement for maltab function "\", mldivide
@@ -274,40 +275,40 @@ def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     ## Check
     # Refrigerant concentrations
     if (w.H2O_rich < w.H2O_poor):
-        print("w_H2O_rich < w_H2O_poor")
+        sys.exit("w_H2O_rich < w_H2O_poor")
         #error("w_H2O_rich < w_H2O_poor")
 
     if (w.H2O_rich < w.H2O_poorI):
-        print("w_H2O_richI < w_H2O_poorI")
+        sys.exit("w_H2O_richI < w_H2O_poorI")
         #error("w_H2O_richI < w_H2O_poorI")
 
     if (w.H2O_rich < 0):
-        print("w_H2O_rich < 0")
+        sys.exit("w_H2O_rich < 0")
         #error("w_H2O_rich < 0")
 
     if (w.H2O_poor < 0):
-        print("w_H2O_poor < 0")
+        sys.exit("w_H2O_poor < 0")
         #error("w_H2O_poor < 0")
 
     if (w.H2O_poorI < 0):
-        print("w_H2O_poorI < 0")
+        sys.exit("w_H2O_poorI < 0")
         #error("w_H2O_poorI < 0")
 
     if (w.H2O_rich - w.H2O_poor < 0.005):
-        print("w_H2O_rich - w_H2O_poor < 0.005")
+        sys.exit("w_H2O_rich - w_H2O_poor < 0.005")
         #error("w_H2O_rich - w_H2O_poor < 0.005")
 
     if (w.H2O_rich - w.H2O_poorI < 0.005):
-        print("w_H2O_rich - w_H2O_poorI < 0.005")
+        sys.exit("w_H2O_rich - w_H2O_poorI < 0.005")
        #error("w_H2O_rich - w_H2O_poorI < 0.005")
 
     # Mass flow
     if (m.ref<0 or m.sol_poor<0 or m.sol_rich<0):
-        print("mass flow is negativ")
+        sys.exit("mass flow is negativ")
         #error("mass flow is negativ")
 
     if (m.refI<0 or m.sol_poorI<0 or m.sol_richI<0):
-        print("mass flow is negativ")
+        sys.exit("mass flow is negativ")
         #error("mass flow is negativ")
 
     # Crystallization and Violation where Patek is used
@@ -378,11 +379,11 @@ def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poorI,T.sol_abs_inI,"ValveI exit")
     # Energy and mass balance
     if (abs(PP.energyBalance) > 1):
-        print('Energy is not conserved')
+        sys.exit('Energy is not conserved')
         #error("Energy is not conserved")
 
     if (abs(PP.massBalance) > 1):
-        print('Mass is not conserved')
+        sys.exit('Mass is not conserved')
         #error("Mass is not conserved")
 
     #-------------------------------------------------------------------------#

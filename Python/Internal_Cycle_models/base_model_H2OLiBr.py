@@ -9,6 +9,7 @@
 import numpy 
 from Fluids import LiBrSol, H2O
 import CoolProp.CoolProp as CP
+import sys
 
 
 def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):     
@@ -220,7 +221,7 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
                     [1,          -1,                                 -1]   ] )
             b = numpy.array([   Q.dec  ,     0    ,                               0    ]) 
         case _:
-            print('AKM requirement is not defined properly. Use Q_des or Q_evap') #error
+            sys.exit('AKM requirement is not defined properly. Use Q_des or Q_evap') #error
 
     y =  numpy.linalg.solve(A,b) # replacement for matlab function "\", mldivide 
     m.sol_rich = y[0] 
@@ -231,20 +232,20 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     # # Check
     # Refrigerant concentrations
     if w.H2O_rich < w.H2O_poor:
-        print("w_H2O_rich < w_H2O_poor") # error
+        sys.exit("w_H2O_rich < w_H2O_poor") # error
 
     if w.H2O_rich < 0:
-        print("w_H2O_rich < 0") #error
+        sys.exit("w_H2O_rich < 0") #error
 
     if w.H2O_poor < 0:
-        print("w_H2O_poor < 0") #error
+        sys.exit("w_H2O_poor < 0") #error
 
     if (w.H2O_rich - w.H2O_poor) < 0.005:
-        print("w_H2O_rich - w_H2O_poor < 0.005") #error
+        sys.exit("w_H2O_rich - w_H2O_poor < 0.005") #error
 
     # Mass flow
     if m.ref<0 or m.sol_poor<0 or m.sol_rich<0 :
-        print("mass flow is negativ") #error
+        sys.exit("mass flow is negativ") #error
 
     # Crystallization and Violation where Patek is used
     # Weak Solution
@@ -320,10 +321,10 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     LiBrSol.checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_abs_in,"Valve exit") 
     # Energy and mass balance
     if abs(PP.energyBalance) > 0.1:
-        print("Energy is not conserved") # error
+        sys.exit("Energy is not conserved") # error
 
     if abs(PP.massBalance) > 1:
-        print("Mass is not conserved") #error
+        sys.exit("Mass is not conserved") #error
 
 
     #------------------------------------------------------------------------- #
