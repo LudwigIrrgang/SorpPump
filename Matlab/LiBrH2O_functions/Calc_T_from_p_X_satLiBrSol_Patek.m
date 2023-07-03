@@ -2,25 +2,11 @@ function T = Calc_T_from_p_X_satLiBrSol_Patek(p,X)
 % ---------------------------------------------------------------------- %
 % Calc_T_from_p_X_satLiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
-%       -   pressure of LiBr solution                                  [K]
-%       -   concentration of  solution                                 [Pa]
+%       -   pressure of LiBr solution                                  [Pa]
+%       -   concentration of  solution                                  [-]
 % Output:
-%       -   Saturation temperature of LiBr solution                    [-]
+%       -   Saturation temperature of LiBr solution                     [K]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(p),error('Input Argument:Pressure missing');end
 if nargin<1||isempty(X),error('Input Argument:Concentration missing');end
