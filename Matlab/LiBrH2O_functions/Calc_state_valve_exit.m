@@ -1,20 +1,6 @@
 function [T_abs_in] = Calc_state_valve_exit(T_sat, p_evap, h_abs_in, m_poor, w_H2O_poor, stepsize)
 % ---------------------------------------------------------------------- %
 % Calc_state_valve_exit
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
 %       -   Saturation temperature of Solution T                    [K]
 %       -   Evaporation pressure                                    [Pa]
