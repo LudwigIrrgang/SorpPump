@@ -32,19 +32,6 @@ def Calc_T_from_p_X_NH3H2OSol_Patek( p,X_mol_NH3):
     % Calc_T_from_p_X_NH3H2OSol_Patek
     % Uses coefficients and formula obtained from Patek 1995
     % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
-    % ---------------------------------------------------------------------- %
     % Input:
     %       -   Pressure                                                   [Pa]
     %       -   Molar Concentration X of NH3 in Solution                   [-]
@@ -91,19 +78,6 @@ def Calc_T_from_p_Y_NH3H2OSol_Patek( p,Y_mol_NH3):
     % ---------------------------------------------------------------------- %
     % Calc_T_from_p_Y_NH3H2OSol_Patek
     % Uses coefficients and formula obtained from Patek 1995
-    % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
     % ---------------------------------------------------------------------- %
     % Input:
     %       -   Pressure                                                   [Pa]
@@ -154,19 +128,6 @@ def Calc_Y_from_p_X_NH3H2OSol_Patek( p,X_mol_NH3):
     % Calc_T_from_p_Y_NH3H2OSol_Patek
     % Uses coefficients and formula obtained from Patek 1995
     % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
-    % ---------------------------------------------------------------------- %
     % Input:
     %       -   Pressure                                                   [Pa]
     %       -   Molar Concentration X of NH3 in the solution               [-]
@@ -215,19 +176,6 @@ def Calc_h_liquid_from_T_X_NH3H2O_Patek( T, X_mol_NH3):
     % Calc_h_from_T_X_NH3H2O_Patek
     % Uses coefficients and formula obtained from Patek 1995
     % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
-    % ---------------------------------------------------------------------- %
     % Input:
     %       -   Termperature of Solution T                              [K]
     %       -   Molar Concentration X of NH3 in Solution                [-]
@@ -274,19 +222,6 @@ def Calc_h_liquid_from_p_X_NH3H2O_Patek( p, X_mol_NH3):
     % ---------------------------------------------------------------------- %
     % Calc_h_from_T_X_NH3H2O_Patek
     % Uses coefficients and formula obtained from Patek 1995
-    % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
     % ---------------------------------------------------------------------- %
     % Input:
     %       -   Termperature of Solution T                              [K]
@@ -337,19 +272,6 @@ def Calc_h_gas_from_T_Y_NH3H2O_Patek(T,Y_mol_NH3):
     % Calc_h_from_T_X_NH3H2O_Patek
     % Uses coefficients and formula obtained from Patek 1995
     % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
-    % ---------------------------------------------------------------------- %
     % Input:
     %       -   Termperature of Solution T                              [K]
     %       -   Molar Concentration X of NH3 in Solution                [-]
@@ -397,19 +319,6 @@ def Calc_h_gas_from_p_X_NH3H2O_Patek(p, X_mol_NH3):
     % ---------------------------------------------------------------------- %
     % Calc_h_from_T_X_NH3H2O_Patek
     % Uses coefficients and formula obtained from Patek 1995
-    % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
     % ---------------------------------------------------------------------- %
     % Input:
     %       -   Termperature of Solution T                              [K]
