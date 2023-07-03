@@ -1,7 +1,7 @@
 function h = Calc_h_from_T_X_NH3Sol_Patek(T,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_h_from_T_X_LiBrSol_Patek
-% Uses coefficients and formula obtained from Patek 2006
+% Uses coefficients and formula obtained from Patek 1995
 % ---------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
