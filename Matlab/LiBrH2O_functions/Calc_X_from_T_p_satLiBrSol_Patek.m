@@ -2,25 +2,11 @@ function X = Calc_X_from_T_p_satLiBrSol_Patek(T,p)
 % ---------------------------------------------------------------------- %
 % Calc_X_from_T_p_LiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
 %       -   Temperature of LiBR solution                                [K]
 %       -   Pressure of saturated solution                             [Pa]
 % Output:
-%       -   Mass concentration of LiBr in saturated solution            [-]
+%       -   Molar concentration of LiBr in saturated solution           [-]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(p),error('Input Argument:Pressure missing');end
 if nargin<1||isempty(T),error('Input Argument:Temperature missing');end
@@ -68,5 +54,4 @@ funX = @(X)T-(Koef_a(1)*X^Koef_m(1)*(0.4-X)^Koef_n(1)*(T_R)^Koef_t(1)...
     +Koef_a(7)*X^Koef_m(7)*(0.4-X)^Koef_n(7)*(T_R)^Koef_t(7)...
     +Koef_a(8)*X^Koef_m(8)*(0.4-X)^Koef_n(8)*(T_R)^Koef_t(8))-T_sat;
 X = fzero(funX,0);
-
 end
