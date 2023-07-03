@@ -2,25 +2,11 @@ function p_vap = Calc_p_from_T_X_LiBrSol_Patek(T,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_p_from_T_X_LiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
-%       -   Termperature of Solution T                                  [K]
+%       -   Temperature of Solution T                                   [K]
 %       -   Molar Concentration X of LiBr in Solution                   [-]
 % Output:
-%       -   Temperature for vapor pressure calculation              [J/mol]
+%       -   Pressure of solution at saturation                         [Pa]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(X_mol_LiBr),error('Input Argument:Concentration missing');end
 if nargin<1||isempty(T),error('Input Argument:Temperature missing');end
@@ -50,9 +36,6 @@ Koef_alpha = [  -7.85951783;
 %% Calculation
 % Calculation of Teta
 sum = 0;
-factors = zeros(8,1);
-a = 0;
-b = 0;
 for i=1:1:8
    sum = sum +  Koef_a(i)*X_mol_LiBr^Koef_m(i)*(0.4-X_mol_LiBr)^Koef_n(i)*(T/T_c)^Koef_t(i);
 end
