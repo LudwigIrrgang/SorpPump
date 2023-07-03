@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = base_model_H2OLiBr(T, p, h, m, eta, Q,
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.02.2023
+Date    : 28.07.2022
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -227,6 +227,7 @@ Q.SHEX = (h.sol_des_out - h.sol_valve_in)*m.sol_poor;
 h.sol_des_in = h.sol_pump_out + Q.SHEX/m.sol_rich;
 cp.sol_pump_out_mol = Calc_cp_from_T_X_LiBrSol_Patek(T.sol_pump_out,x.LiBr_rich);
 cp.sol_pump_out = cp.sol_pump_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O);
+% Assuming constant heat capacity
 T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
 %% Poor solution after valve
 h.sol_abs_in = h.sol_valve_in;
