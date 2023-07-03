@@ -1,25 +1,10 @@
 function [CritValue] = crystallization_H2OLiBr(decider,value)
 % ---------------------------------------------------------------------- %
-% function crystallization
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
-%% Anmerkungen
+% crystallization
 % Calculates critical Temperatures or concentrations for given value
-% Concentration equals mass fraction
 % Use "T" if Input is temperature as decider value
 % Use "w" if Input is mass fraction of LiBr in solution as decider value
+% ---------------------------------------------------------------------- %
 %% Computation
 T_cr = 0;
 w_cr = 0;
