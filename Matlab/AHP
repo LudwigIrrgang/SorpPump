@@ -105,14 +105,14 @@ T.cond = T.ext_cond_in + HX.T_PP_cond + HX.SC_cond;
 switch s.configuration
     case 'Double_effect'
         % Internal condenser
-        T.cond_int = T.cond + HX.dT_ref_des + HX.T_PP_cond_int; % 5K since refrigerant leaves desorber 5 K below desorber exit temperature
+        T.cond_int = T.cond + HX.dT_ref_des + HX.T_PP_cond_int;
         % Upper pressure desorber
         T.sol_des_outI = T.sol_des_out;
         % Middle pressur desorber
         T.sol_des_out = T.cond_int - HX.T_PP_cond_int;
     case 'Double_effect_serial'
         % Internal condenser
-        T.cond_int = T.cond + HX.dT_ref_des + HX.T_PP_cond_int; % 5K since refrigerant leaves desorber 5 K below desorber exit temperature
+        T.cond_int = T.cond + HX.dT_ref_des + HX.T_PP_cond_int;
         % Upper pressure desorber
         T.sol_des_outI = T.sol_des_out;
         % Middle pressur desorber
