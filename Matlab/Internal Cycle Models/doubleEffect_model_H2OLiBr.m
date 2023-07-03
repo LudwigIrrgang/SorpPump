@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = doubleEffect_model_H2OLiBr(T, p, h, m,
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.02.2023
+Date    : 28.07.2022
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -162,8 +162,6 @@ h.ref_des_outI = CoolProp.PropsSI('H','T',T.ref_des_outI,'P',p.cond_int,'Water')
 % Condenser
 T.ref_cond_in = T.ref_des_out;
 h.ref_cond_in = h.ref_des_out;
-% T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond; % Subcooling as low as possible
-% h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'T',T.ref_cond_out,'Water');
 if (T.ext_cond_in+HX.T_PP_cond<T.cond)
     T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond; % Subcooling as low as possible
     h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'T',T.ref_cond_out,'Water');
@@ -315,9 +313,15 @@ T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI-h.sol_pump_outI)/cp.sol_pump_ou
 %% Poor solution after valve
 h.sol_abs_in = h.sol_valve_in;
 T.sol_abs_in = T.sol_valve_in;
+cp.sol_abs_in_mol = Calc_cp_from_T_X_LiBrSol_Patek(T.sol_abs_in,x.LiBr_poor);
+cp.sol_abs_in = cp.sol_abs_in_mol/(x.LiBr_poor*M_LiBr + x.H2O_poor*M_H2O);
 %% Poor solution I after valve
 h.sol_abs_inI = h.sol_valve_inI;
 T.sol_abs_inI = T.sol_valve_inI;
+cp.sol_abs_in_molI = Calc_cp_from_T_X_LiBrSol_Patek(T.sol_abs_inI,x.LiBr_poorI);
+cp.sol_abs_inI = cp.sol_abs_in_molI/(x.LiBr_poorI*M_LiBr + x.H2O_poorI*M_H2O);
+% Solution temperatur at absorber inlet
+T.abs_in = (T.sol_abs_in*m.sol_poor*cp.sol_abs_in+T.sol_abs_inI*m.sol_poorI*cp.sol_abs_inI)/(m.sol_poor*cp.sol_abs_in+m.sol_poorI*cp.sol_abs_inI);
 %-------------------------------------------------------------------------%
 %% Post processing
 % Calculate fluxes over system boundary
