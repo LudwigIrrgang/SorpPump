@@ -1,20 +1,6 @@
 function [T_des_in] = Calc_state_SHEX_exit(T_sat, p_cond, h_des_in, m_rich, w_H2O_rich, stepsize)
 % ---------------------------------------------------------------------- %
 % Calc_state_SHEX_exit
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
 %       -   Saturation temperature of Solution T                    [K]
 %       -   Condensation pressure                                   [Pa]
