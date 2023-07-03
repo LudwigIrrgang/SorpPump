@@ -1,26 +1,12 @@
 function checkForViolation_H2OLiBr(w,T,position)
 % ---------------------------------------------------------------------- %
-% function checkForViolation
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
-%% Description
+% checkForViolation
 % Checks for violation of accepted values for solution state functions
 % Gives no output in case of no violation
 % Throws error if boundaries violated
 % Input:    w : mass fraction of LiBr in solution as decider value
 %           T : temperature of solution
+% ---------------------------------------------------------------------- %
 %% Computation
 w_cr = crystallization_H2OLiBr("T",T);
 T_cr = crystallization_H2OLiBr("w",w);
