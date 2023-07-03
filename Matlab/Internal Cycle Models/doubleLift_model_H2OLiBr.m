@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = doubleLift_model_H2OLiBr(T, p, h, m, e
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.02.2023
+Date    : 28.07.2022
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -293,12 +293,6 @@ if (w.H2O_poor < 0)
 end
 if (w.H2O_poorI < 0)
     error("w_H2O_poorI < 0")
-end
-if (w.H2O_rich - w.H2O_poor < 0.005)
-        error("w_H2O_rich - w_H2O_poor < 0.005")
-end
-if (w.H2O_richI - w.H2O_poorI < 0.005)
-        error("w_H2O_richI - w_H2O_poorI < 0.005")
 end
 % Mass flow
 if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
