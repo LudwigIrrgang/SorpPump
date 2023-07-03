@@ -2,25 +2,11 @@ function s = Calc_s_from_T_X_LiBrSol_Patek(T,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_s_from_T_X_LiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
-%       -   Termperature of Solution T                                  [K]
+%       -   Temperature of Solution T                                   [K]
 %       -   Molar concentration of LiBr in Solution                     [-]
 % Output:
-%       -   Molar entropy of solution                              [J/molK]
+%       -   Molar entropy of solution                             [J/mol/K]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(X_mol_LiBr),error('Input Argument:Concentration missing');end
 if nargin<1||isempty(T),error('Input Argument:Temperature missing');end
@@ -100,5 +86,3 @@ for i=1:1:29
 end
 s = (1-X_mol_LiBr)*s_sat + s_c*(a*(T_c/(T-T_0))^5 + b*(T_c/(T-T_0))^4 + c*(T_c/(T-T_0))^3 + d*(T_c/(T-T_0))^2 + e*(T_c/(T-T_0))^1 + f);
 end
-    
-
