@@ -1,25 +1,37 @@
+"""
+Author: Ludwig Irrgang
+Date: 25.06.2022
+Copyright information:
+Ludwig Irrgang
+Lehrstuhl für Energiesysteme
+TUM School of Engineering and Design
+Technische Universität München
+Boltzmannstr. 15 85748 Garching b.München
+ludwig.irrgang@tum.de
+"""
+
 import math
 import numpy
 import pandas  
 import CoolProp.CoolProp as CP
 from scipy.optimize import newton, root_scalar 
-DFcal_LiBrSol = pandas.read_csv(r"Python/Fluids/LiBrSol_cal.csv", sep=";")    
+DFcal_LiBrSol = pandas.read_csv("Fluids/LiBrSol_cal.csv", sep=";")
 
 def  Calc_cp_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     """
     Calc_cp_from_T_X_LiBrSol_Patek
     Uses coefficients and formula obtained from Patek 2006
     Input:
-        -   Termperature of Solution T                                  [K]
+        -   Temperature of Solution T                                   [K]
         -   Molar Concentration X of LiBr in Solution                   [-]
     Output:
-        -   Molar heat capacity                                   [mol/m**3]
+        -   Molar heat capacity                                         [J/mol/K]
     """
     ## Constants
     cp_t = 76.0226             #[J/molK]
     T_c = 647.096              #[K]
     T_0 = 221                  #[K]
-    RMS = 0.98 * 10**-3         #[-]
+    RMS = 0.98 * 10**-3        #[-]
     T_t = 273.16               #[K]
     # Table 6
     Koef_a = [-1.42094  *   10**1,
@@ -62,31 +74,14 @@ def  Calc_cp_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
 
 def Calc_h_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     """
-    % ---------------------------------------------------------------------- %
-    % Calc_h_from_T_X_LiBrSol_Patek
-    % Uses coefficients and formula obtained from Patek 2006
-    % ---------------------------------------------------------------------- %
-    %{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    %}
-    % ---------------------------------------------------------------------- %
-    % Input:
-    %       -   Termperature of Solution T                                  [K]
-    %       -   Molar Concentration X of LiBr in Solution                   [-]
-    % Output:
-    %       -   Molar enthalpy h of solution                            [J/mol]
-    % ---------------------------------------------------------------------- %
+    Calc_h_from_T_X_LiBrSol_Patek
+    Uses coefficients and formula obtained from Patek 2006
+    Input:
+        -   Temperature of Solution T                                   [K]
+        -   Molar Concentration X of LiBr in Solution                   [-]
+    Output:
+        -   Molar enthalpy h of solution                                [J/mol]
     """
-    
     ## Constants
     T_c = 647.096               #[K]
     h_c = 37548.5               #[J/mol]
@@ -131,17 +126,14 @@ def Calc_h_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
                     3.03440     *   10**-1,
                     -1.29582    *   10**0,
                     -1.76410    *   10**-1]
-
     ## Calculation
     #  Calculation of h_start
     sum = 0
     for i in range(4):
         sum = sum + Koef_alpha[i]*(1-(T/T_c))**Koef_beta[i]
-    
     h_sat = h_c * (1 + sum)
-
     # Calculation of h
-    factors = numpy.zeros((30,))
+    factors = numpy.zeros(30)   #numpy.zeros((30),)
     a=0
     b=0
     c=0
@@ -163,35 +155,18 @@ def Calc_h_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
         elif Koef_t[i] == 5:
             a = a + factors[i]
     h = (1-X_mol_LiBr)*h_sat + h_c*(a*(T_c/(T-T_0))**5 + b*(T_c/(T-T_0))**4 + c*(T_c/(T-T_0))**3 + d*(T_c/(T-T_0))**2 + e*(T_c/(T-T_0))**1 + f)
-    
     return h
 
 
 def Calc_p_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     """
-    # ---------------------------------------------------------------------- #
-    # Calc_p_from_T_X_LiBrSol_Patek
-    # Uses coefficients and formula obtained from Patek 2006
-    # ---------------------------------------------------------------------- #
-    # {
-    # Author  : Ludwig Irrgang
-    # Date    : 25.06.2022
-    # Copyright information:
-    # Ludwig Irrgang
-    # Lehrstuhl für Energiesysteme
-    # TUM School of Engineering and Design
-    # Technische Universität München
-    # Boltzmannstr. 15 
-    # 85748 Garching b. München
-    # ludwig.irrgang@tum.de
-    # }
-    # ---------------------------------------------------------------------- #
-    # Input:
-    #       -   Termperature of Solution T                                  [K]
-    #       -   Molar Concentration X of LiBr in Solution                   [-]
-    # Output:
-    #       -   Temperature for vapor pressure calculation              [J/mol]
-    # ---------------------------------------------------------------------- #
+    Calc_p_from_T_X_LiBrSol_Patek
+    Uses coefficients and formula obtained from Patek 2006
+    Input:
+        -   Temperature of Solution T                                   [K]
+        -   Molar Concentration X of LiBr in Solution                   [-]
+    Output:
+        -   Pressure of solution at saturation                          [Pa]
     """
     ## Constants
     T_c = 647.096              #[K]
@@ -219,47 +194,26 @@ def Calc_p_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     ## Calculation
     # Calculation of Teta
     sum = 0
-    factors = numpy.zeros((8,))
-    a = 0
-    b = 0
     for i in range(8):
         sum = sum +  Koef_a[i]*X_mol_LiBr**Koef_m[i]*(0.4-X_mol_LiBr)**Koef_n[i]*(T/T_c)**Koef_t[i]
-
     Teta = T - sum
     # Calculation of vapor pressure p_vap
     sum = 0
     for i in range(6):
         sum = sum + Koef_alpha[i]*(1-(Teta/T_c))**Koef_beta[i]
-
     p_vap = p_c*math.exp((T_c/Teta)*sum)
-
     return p_vap
 
 
 def Calc_rho_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
-    """# ---------------------------------------------------------------------- #
-    # Calc_rho_from_T_X_LiBrSol_Patek
-    # Uses coefficients and formula obtained from Patek 2006
-    # ---------------------------------------------------------------------- #
-    # {
-    # Author  : Ludwig Irrgang
-    # Date    : 25.06.2022
-    # Copyright information:
-    # Ludwig Irrgang
-    # Lehrstuhl für Energiesysteme
-    # TUM School of Engineering and Design
-    # Technische Universität München
-    # Boltzmannstr. 15 
-    # 85748 Garching b. München
-    # ludwig.irrgang@tum.de
-    # }
-    # ---------------------------------------------------------------------- #
-    # Input:
-    #       -   Termperature of Solution T                                  [K]
-    #       -   Molar Concentration X of LiBr in Solution                   [-]
-    # Output:
-    #       -   Molar density rho                                     [mol/m**3]
-    # ---------------------------------------------------------------------- #
+    """
+    Calc_rho_from_T_X_LiBrSol_Patek
+    Uses coefficients and formula obtained from Patek 2006
+    Input:
+        -   Temperature of Solution T                                   [K]
+        -   Molar Concentration X of LiBr in Solution                   [-]
+    Output:
+        -   Molar density rho                                           [mol/m**3]
     """
     ## Constants
     T_c = 647.096             #[K]
@@ -282,41 +236,25 @@ def Calc_rho_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     sum = 0
     for i in range(6):
         sum = sum + Koef_alpha[i]*(1-(T/T_c))**Koef_beta[i]
-
     rho_sat = rho_c * (1 + sum)
     # Calculation of rho
     rho = (1-X_mol_LiBr)*rho_sat+\
     rho_c*(Koef_a[0]*X_mol_LiBr**Koef_m[0]*(T/T_c)**Koef_t[0]+\
     Koef_a[1]*X_mol_LiBr**Koef_m[1]*(T/T_c)**Koef_t[1])
     rho = rho*1000
-
     return rho
 
 
 def Calc_s_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
-    # ---------------------------------------------------------------------- #
-    # Calc_s_from_T_X_LiBrSol_Patek
-    # Uses coefficients and formula obtained from Patek 2006
-    # ---------------------------------------------------------------------- #
-    #{
-    # Author  : Ludwig Irrgang
-    # Date    : 25.06.2022
-    # Copyright information:
-    # Ludwig Irrgang
-    # Lehrstuhl für Energiesysteme
-    # TUM School of Engineering and Design
-    # Technische Universität München
-    # Boltzmannstr. 15 
-    # 85748 Garching b. München
-    # ludwig.irrgang@tum.de
-    #}
-    # ---------------------------------------------------------------------- #
-    # Input:
-    #       -   Termperature of Solution T                                  [K]
-    #       -   Molar concentration of LiBr in Solution                     [-]
-    # Output:
-    #       -   Molar entropy of solution                              [J/molK]
-    # ---------------------------------------------------------------------- #
+    """
+    Calc_s_from_T_X_LiBrSol_Patek
+    Uses coefficients and formula obtained from Patek 2006
+    Input:
+        -   Temperature of Solution T                                   [K]
+        -   Molar concentration of LiBr in Solution                     [-]
+    Output:
+        -   Molar entropy of solution                                   [J/mol/K]
+    """
     ## Constants
     T_c = 647.096              #[K]
     s_c = 79.3933              #[J/molK]
@@ -365,7 +303,6 @@ def Calc_s_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
     sum = 0
     for i in range(4):
         sum = sum + Koef_alpha[i]*(1-(T/T_c))**Koef_beta[i]
-
     s_sat = s_c * (1 + sum)
     # Calculation of s
     factors = numpy.zeros((29,))
@@ -389,10 +326,7 @@ def Calc_s_from_T_X_LiBrSol_Patek(T,X_mol_LiBr):
             b = b + factors[i]
         elif Koef_t[i] == 5:
             a = a + factors[i]
-    
-
     s = (1-X_mol_LiBr)*s_sat + s_c*(a*(T_c/(T-T_0))**5 + b*(T_c/(T-T_0))**4 + c*(T_c/(T-T_0))**3 + d*(T_c/(T-T_0))**2 + e*(T_c/(T-T_0))**1 + f)
-
     return s
 
 
@@ -400,26 +334,11 @@ def  Calc_T_from_h_X_LiBrSol_Patek(h,X_mol_LiBr):
     """
     Calc_T_from_h_X_LiBrSol_Patek
     Uses coefficients and formula obtained from Patek 2006
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
-            -   Molar enthalpy of solution                             [J/molK]
-            -   Molar Concentration X of LiBr in Solution                   [-]
+        -   Molar enthalpy of solution                                      [J/mol/K]
+        -   Molar concentration X of LiBr in Solution                       [-]
     Output:
-            -   Temperature of solution                                     [K]
-    ---------------------------------------------------------------------- 
+        -   Temperature of solution                                         [K]
     """
     #Constants
     T_c = 647.096              #[K]
@@ -506,29 +425,15 @@ def  Calc_T_from_h_X_LiBrSol_Patek(h,X_mol_LiBr):
     return  T 
 
 
-def  Calc_T_from_p_X_satLiBrSol_Patek( p,X):
+def  Calc_T_from_p_X_satLiBrSol_Patek(p,X):
     """
     Calc_T_from_p_X_satLiBrSol_Patek
     Uses coefficients and formula obtained from Patek 2006
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
-        -   pressure of LiBr solution                                  [K]
-        -   concentration of  solution                                 [Pa]
+        -   pressure of LiBr solution                                  [Pa]
+        -   concentration of  solution                                 [-]
     Output:
-        -   Saturation temperature of LiBr solution                    [-]
+        -   Saturation temperature of LiBr solution                    [T]
     """
     ## Constants
     T_c = 647.096              #[K]
@@ -563,7 +468,6 @@ def  Calc_T_from_p_X_satLiBrSol_Patek( p,X):
         Koef_alpha[4]*(1-(T/T_c))**Koef_beta[4]+\
         Koef_alpha[5]*(1-(T/T_c))**Koef_beta[5]))-p
     T_sat = newton(funT,x0=300)
-    
     funT = lambda T: T-(Koef_a[0]*X**Koef_m[0]*(0.4-X)**Koef_n[0]*(T/T_c)**Koef_t[0]\
         +Koef_a[1]*X**Koef_m[1]*(0.4-X)**Koef_n[1]*(T/T_c)**Koef_t[1]\
         +Koef_a[2]*X**Koef_m[2]*(0.4-X)**Koef_n[2]*(T/T_c)**Koef_t[2]\
@@ -577,31 +481,16 @@ def  Calc_T_from_p_X_satLiBrSol_Patek( p,X):
     return  T 
 
 
-def  Calc_T_from_s_X_LiBrSol_Patek( s,X_mol_LiBr):
+def  Calc_T_from_s_X_LiBrSol_Patek(s,X_mol_LiBr):
     """
     Calc_T_from_s_X_LiBrSol_Patek
     Uses coefficients and formula obtained from Patek 2006
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
-        -   Molar enthalpy of solution                             [J/molK]
+        -   Molar enthalpy of solution                                  [J/mol]
         -   Molar Concentration X of LiBr in Solution                   [-]
     Output:
         -   Temperature of solution                                     [K]
     """
-
     ## Constants
     T_c = 647.096              #[K]
     s_c = 79.3933              #[J/molK]
@@ -689,28 +578,12 @@ def  Calc_X_from_T_p_satLiBrSol_Patek(T,p):
     """
     Calc_X_from_T_p_LiBrSol_Patek
     Uses coefficients and formula obtained from Patek 2006
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
         -   Temperature of LiBR solution                                [K]
-        -   Pressure of saturated solution                             [Pa]
+        -   Pressure of saturated solution                              [Pa]
     Output:
-        -   Mass concentration of LiBr in saturated solution            [-]
+        -   Molar concentration of LiBr in saturated solution           [-]
     """
-    #if nargin<2||isempty  p,error  'Input Argument:Pressure missing'end:
-    #if nargin<1||isempty  T,error  'Input Argument:Temperature missing'end:
     ## Constants
     T_c = 647.096              #[K]
     p_c = 22.064 * 10**6        #[Pa]
@@ -745,7 +618,6 @@ def  Calc_X_from_T_p_satLiBrSol_Patek(T,p):
         Koef_alpha[5]*(1-(T/T_c))**Koef_beta[5]))-p
     T_sat = root_scalar(funT,bracket=[100,500]).root
     #T_sat = newton(funT,x0=300)
-    
     T_R = T/T_c
     funX = lambda X: T-(Koef_a[0]*X**Koef_m[0]*(0.4-X)**Koef_n[0]*(T_R)**Koef_t[0]\
         +Koef_a[1]*X**Koef_m[1]*(0.4-X)**Koef_n[1]*(T_R)**Koef_t[1]\
@@ -755,30 +627,14 @@ def  Calc_X_from_T_p_satLiBrSol_Patek(T,p):
         +Koef_a[5]*X**Koef_m[5]*(0.4-X)**Koef_n[5]*(T_R)**Koef_t[5]\
         +Koef_a[6]*X**Koef_m[6]*(0.4-X)**Koef_n[6]*(T_R)**Koef_t[6]\
         +Koef_a[7]*X**Koef_m[7]*(0.4-X)**Koef_n[7]*(T_R)**Koef_t[7])-T_sat
-
     X = newton(funX,x0=0.3)
     #X = root_scalar(funX,bracket=[0.01,0.9]).root
-    
     return  X 
 
 
-def  Calc_state_SHEX_exit( T_sat, p_cond, h_des_in, m_rich, w_H2O_rich, stepsize):
+def  Calc_state_SHEX_exit(T_sat, p_cond, h_des_in, m_rich, w_H2O_rich, stepsize):
     """
     Calc_state_SHEX_exit
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
         -   Saturation temperature of Solution T                    [K]
         -   Condensation pressure                                   [Pa]
@@ -819,23 +675,9 @@ def  Calc_state_SHEX_exit( T_sat, p_cond, h_des_in, m_rich, w_H2O_rich, stepsize
     return  T_des_in 
 
 
-def  Calc_state_valve_exit( T_sat, p_evap, h_abs_in, m_poor, w_H2O_poor, stepsize):
+def  Calc_state_valve_exit(T_sat, p_evap, h_abs_in, m_poor, w_H2O_poor, stepsize):
     """
     Calc_state_valve_exit
-    ---------------------------------------------------------------------- 
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    ---------------------------------------------------------------------- 
     Input:
         -   Saturation temperature of Solution T                    [K]
         -   Evaporation pressure                                    [Pa]
@@ -876,29 +718,12 @@ def  Calc_state_valve_exit( T_sat, p_evap, h_abs_in, m_poor, w_H2O_poor, stepsiz
     return  T_abs_in    
 
 
-def crystallization_H2OLiBr( decider,value):
+def crystallization_H2OLiBr(decider,value):
     """
-    # ----------------------------------------------------------------------  #
-    # function crystallization
-    # ----------------------------------------------------------------------  #
-    #{
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    #}
-    # ----------------------------------------------------------------------  #
-    # # Anmerkungen
-    # Calculates critical Temperatures or concentrations for given value
-    # Concentration equals mass fraction
-    # Use "T" if Input is temperature as decider value
-    # Use "w" if Input is mass fraction of LiBr in solution as decider value
+    crystallization
+    Calculates critical temperatures or concentrations for given value
+    Use "T" if Input is temperature as decider value
+    Use "w" if Input is mass fraction of LiBr in solution as decider value
     """
     # # Computation
     T_cr = 0
@@ -919,7 +744,6 @@ def crystallization_H2OLiBr( decider,value):
         # Calculate critical values
         for i in range(8):
             T_cr = T_cr + parameter_T[i]*(w_r**(i))
-        
         CritValue = T_cr
     elif decider == "T":
         # Parameters (from Albers report 2019, Boryta 1970)
@@ -937,38 +761,20 @@ def crystallization_H2OLiBr( decider,value):
         # Calculate critical values
         for i in range(8):
             w_cr = w_cr + parameter_w[i]*(T_r**(i))
-        
         CritValue = w_cr
     else:
         print("Crystallization function failed - Decider value not defined - use T or w")
         return
-    
-    return CritValue 
+    return CritValue
 
 
-def checkForViolation_H2OLiBr( w,T,position):
+def checkForViolation_H2OLiBr(w,T,position):
     """
-    function checkForViolation
-    # ----------------------------------------------------------------------  #
-    {
-    Author  : Ludwig Irrgang
-    Date    : 25.06.2022
-    Copyright information:
-    Ludwig Irrgang
-    Lehrstuhl für Energiesysteme
-    TUM School of Engineering and Design
-    Technische Universität München
-    Boltzmannstr. 15 
-    85748 Garching b. München
-    ludwig.irrgang@tum.de
-    }
-    # ----------------------------------------------------------------------  #
-    Description
+    checkForViolation
     Checks for violation of accepted values for solution state functions
-    Gives no output in case of no violation
-    Throws error if boundaries violated
-    Input:    w : mass fraction of LiBr in solution as decider value
-            T : temperature of solution"""
+    Use "T" if Input is temperature as decider value
+    Use "w" if Input is mass fraction of LiBr in solution as decider value
+    """
     # # Computation
     w_cr = crystallization_H2OLiBr("T",T)
     T_cr = crystallization_H2OLiBr("w",w)
