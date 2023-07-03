@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = base_model_NH3H2O(T, p, h, m, eta, Q, 
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.02.2023
+Date    : 01.09.2022
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -123,10 +123,17 @@ h.sol_abs_out = refpropm('H','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_ri
 % Pump
 s.sol_abs_out = refpropm('S','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 s.sol_pump_out = s.sol_abs_out;
-h.sol_pump_isentropic = refpropm('H','P',p.cond/1000,'S',s.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-h.sol_pump_out = h.sol_abs_out - (h.sol_abs_out-h.sol_pump_isentropic)/eta.pump;
-T.sol_pump_out = refpropm('T','P',p.cond/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-cp.sol_pump_out = refpropm('C','P',p.cond/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+roh_sol_abs_out = refpropm('D','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+v_sol_abs_out = 1/roh_sol_abs_out;
+h.sol_pump_out = h.sol_abs_out+v_sol_abs_out*(p.cond-p.evap);
+try
+    T.sol_pump_out = refpropm('T','P',p.cond/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+catch
+    % Assuming constant volume
+    cv.sol_abs_out = refpropm('O','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+    T.sol_pump_out = T.sol_abs_out + (h.sol_pump_out-h.sol_abs_out)/cv.sol_abs_out;
+end
+cp.sol_pump_out = refpropm('C','T',T.sol_pump_out,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 %-------------------------------------------------------------------------%
 %% Poor solution (Low ref. concentration)
 % Desorber
@@ -195,12 +202,7 @@ catch
 end
 %% Poor solution after valve Valve
 h.sol_abs_in = h.sol_valve_in;
-try
-    T.sol_abs_in = refpropm('T','P',p.evap/1000,'H',h.sol_abs_in,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_abs_in = T.sol_valve_in;
-end
+T.sol_abs_in = T.sol_valve_in;
 %-------------------------------------------------------------------------%
 %% Post processing
 % Fluxes over system boundary
