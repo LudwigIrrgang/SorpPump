@@ -2,23 +2,9 @@ function T = Calc_T_from_h_X_LiBrSol_Patek(h,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_T_from_h_X_LiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
-% ---------------------------------------------------------------------- %
-%{
-Author  : Ludwig Irrgang
-Date    : 25.06.2022
-Copyright information:
-Ludwig Irrgang
-Lehrstuhl für Energiesysteme
-TUM School of Engineering and Design
-Technische Universität München
-Boltzmannstr. 15 
-85748 Garching b. München
-ludwig.irrgang@tum.de
-%}
-% ---------------------------------------------------------------------- %
 % Input:
-%       -   Molar enthalpy of solution                             [J/molK]
-%       -   Molar Concentration X of LiBr in Solution                   [-]
+%       -   Molar enthalpy of solution                            [J/mol/K]
+%       -   Molar concentration X of LiBr in Solution                   [-]
 % Output:
 %       -   Temperature of solution                                     [K]
 % ---------------------------------------------------------------------- %
