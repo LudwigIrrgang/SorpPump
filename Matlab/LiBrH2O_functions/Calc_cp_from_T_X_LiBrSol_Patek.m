@@ -3,15 +3,15 @@ function cp = Calc_cp_from_T_X_LiBrSol_Patek(T,X_mol_LiBr)
 % Calc_cp_from_T_X_LiBrSol_Patek
 % Uses coefficients and formula obtained from Patek 2006
 % Input:
-%       -   Termperature of Solution T                                  [K]
+%       -   Temperature of Solution T                                   [K]
 %       -   Molar Concentration X of LiBr in Solution                   [-]
 % Output:
-%       -   Molar heat capacity                                   [mol/m^3]
+%       -   Molar heat capacity                                   [J/mol/K]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(X_mol_LiBr),error('Input Argument:Concentration missing');end
 if nargin<1||isempty(T),error('Input Argument:Temperature missing');end
 %% Constants
-cp_t = 76.0226;             %[J/molK]
+cp_t = 76.0226;             %[J/mol/K]
 T_c = 647.096;              %[K]
 T_0 = 221;                  %[K]
 RMS = 0.98 * 10^-3;         %[-]
