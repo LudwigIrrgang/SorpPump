@@ -11,13 +11,7 @@ The following libraries and packages have to be imported:
 - math: extending the math functions of Python.
 - scipy.optimize: Using different functions to find numerical solution of various problems.
 - CoolProp.CoolProp: Importing the CoolProp library
-- ctREFPROP.ctREFPROP
-
-
-Implementation of the REFPROP Python Wrapper
-https://refprop-docs.readthedocs.io/en/latest/DLL/high_level.html
-And definition of the used Unit set
-
+- ctREFPROP.ctREFPROP Implementation of the REFPROP Python Wrapper https://refprop-docs.readthedocs.io/en/latest/DLL/high_level.html
 
 ### Basic operation
 
