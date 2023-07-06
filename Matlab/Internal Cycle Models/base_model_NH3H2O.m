@@ -125,14 +125,8 @@ s.sol_abs_out = refpropm('S','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_ri
 s.sol_pump_out = s.sol_abs_out;
 roh_sol_abs_out = refpropm('D','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 v_sol_abs_out = 1/roh_sol_abs_out;
-h.sol_pump_out = h.sol_abs_out+v_sol_abs_out*(p.cond-p.evap);
-try
-    T.sol_pump_out = refpropm('T','P',p.cond/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-catch
-    % Assuming constant volume
-    cv.sol_abs_out = refpropm('O','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-    T.sol_pump_out = T.sol_abs_out + (h.sol_pump_out-h.sol_abs_out)/cv.sol_abs_out;
-end
+h.sol_pump_out = h.sol_abs_out+v_sol_abs_out*(p.cond-p.evap)/eta.pump;
+T.sol_pump_out = T.sol_abs_out;
 cp.sol_pump_out = refpropm('C','T',T.sol_pump_out,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 %-------------------------------------------------------------------------%
 %% Poor solution (Low ref. concentration)
@@ -194,12 +188,7 @@ end
 %-------------------------------------------------------------------------%
 %% Rich solution after SHEX
 h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich;
-try
-    T.sol_des_in = refpropm('T','P',p.cond/1000,'H',h.sol_des_in,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
-end
+T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
 %% Poor solution after valve Valve
 h.sol_abs_in = h.sol_valve_in;
 T.sol_abs_in = T.sol_valve_in;
