@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = doubleLift_model_NH3H2O(T, p, h, m, et
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.02.2023
+Date    : 28.07.2022
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -126,45 +126,28 @@ T.ref_evap_in = CoolProp.PropsSI('T','H',h.ref_evap_in,'P',p.evap,'AMMONIA');
 % Low pressure cycle
 % Absorber
 w.NH3_rich = NH3inSolution_Calc_X_PT(p.evap/1000,T.sol_abs_out);
-if (w.NH3_rich < 0)
-    error("w_NH3_rich < 0")
-end
 h.sol_abs_out = refpropm('H','T',T.sol_abs_out,'P',p.evap/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 % Pump
-s.sol_abs_out = refpropm('S','T',T.sol_abs_out,'P',p.evap/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-s.sol_pump_out = s.sol_abs_out;
-h.sol_pump_isentropic = refpropm('H','P',p.mid/1000,'S',s.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-h.sol_pump_out = h.sol_abs_out - (h.sol_abs_out-h.sol_pump_isentropic)/eta.pump;
-T.sol_pump_out = refpropm('T','P',p.mid/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-cp.sol_pump_out = refpropm('C','P',p.mid/1000,'H',h.sol_pump_out,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+roh_sol_abs_out = refpropm('D','T',T.sol_abs_out,'Q',0,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
+v_sol_abs_out = 1/roh_sol_abs_out;
+h.sol_pump_out = h.sol_abs_out + v_sol_abs_out*(p.mid-p.evap)/eta.pump;
+T.sol_pump_out = T.sol_abs_out;
+cp.sol_pump_out = refpropm('C','T',T.sol_pump_out,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
 % High pressure cycle
 % Absorber
 w.NH3_richI = NH3inSolution_Calc_X_PT(p.mid/1000,T.sol_abs_outI);
-if (w.NH3_richI < 0)
-    error("w_NH3_richI < 0")
-end
 h.sol_abs_outI = refpropm('H','T',T.sol_abs_outI,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
 % Pump
-s.sol_abs_outI = refpropm('S','T',T.sol_abs_outI,'P',p.mid/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
-s.sol_pump_outI = s.sol_abs_outI;
-h.sol_pump_isentropicI = refpropm('H','P',p.cond/1000,'S',s.sol_pump_outI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
-h.sol_pump_outI = h.sol_abs_outI - (h.sol_abs_outI-h.sol_pump_isentropicI)/eta.pump;
-T.sol_pump_outI = refpropm('T','P',p.cond/1000,'H',h.sol_pump_outI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
-cp.sol_pump_outI = refpropm('C','P',p.cond/1000,'H',h.sol_pump_outI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
+roh_sol_abs_outI = refpropm('D','T',T.sol_abs_outI,'Q',0,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
+v_sol_abs_outI = 1/roh_sol_abs_outI;
+h.sol_pump_outI = h.sol_abs_outI + v_sol_abs_outI*(p.cond-p.mid)/eta.pump;
+T.sol_pump_outI = T.sol_abs_outI;
+cp.sol_pump_outI = refpropm('C','T',T.sol_pump_outI,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
 %-------------------------------------------------------------------------%
 %% Poor solution (Low ref. concentration)
 % High pressure
 % Desorber
 w.NH3_poorI = NH3inSolution_Calc_X_PT(p.cond/1000,T.sol_des_outI);
-if (w.NH3_richI < w.NH3_poorI)
-    error("w_NH3_richI < w_NH3_poorI")
-end
-if (w.NH3_richI - w.NH3_poorI < 0.001)
-    error("w_NH3_richI - w_NH3_poorI < 0.001")
-end
-if (w.NH3_poorI < 0)
-    error("w_NH3_poorI < 0")
-end
 if(w.NH3_poorI>0)
     h.sol_des_outI = refpropm('H','T',T.sol_des_outI,'Q',0,'AMMONIA','WATER',[w.NH3_poorI (1-w.NH3_poorI)]);
 else
@@ -178,17 +161,8 @@ else
 end
 h.sol_valve_inI = refpropm('H','T',T.sol_valve_inI,'P',p.cond/1000,'AMMONIA','WATER',[w.NH3_poorI (1-w.NH3_poorI)]);
 % Low pressure
-% Poor solution leaving desorber
+% Desorber
 w.NH3_poor = NH3inSolution_Calc_X_PT(p.mid/1000,T.sol_des_out);
-if (w.NH3_rich < w.NH3_poor)
-    error("w_NH3_rich < w_NH3_poor")
-end
-if (w.NH3_rich - w.NH3_poor < 0.001)
-    error("w_NH3_rich - w_NH3_poor < 0.001")
-end
-if (w.NH3_poor < 0)
-    error("w_NH3_poor < 0")
-end
 if(w.NH3_poor>0)
     h.sol_des_out = refpropm('H','T',T.sol_des_out,'Q',0,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)]);
 else
@@ -242,6 +216,31 @@ m.sol_richI = y(7);
 m.sol_poorI = y(8);
 % ----------------------------------------------------------------------- %
 %% Check
+% Concentrations
+if (w.NH3_rich < 0)
+    error("w_NH3_rich < 0")
+end
+if (w.NH3_richI < 0)
+    error("w_NH3_richI < 0")
+end
+if (w.NH3_richI < w.NH3_poorI)
+    error("w_NH3_richI < w_NH3_poorI")
+end
+if (w.NH3_richI - w.NH3_poorI < 0.005)
+    error("w_NH3_richI - w_NH3_poorI < 0.005")
+end
+if (w.NH3_poorI < 0)
+    error("w_NH3_poorI < 0")
+end
+if (w.NH3_rich < w.NH3_poor)
+    error("w_NH3_rich < w_NH3_poor")
+end
+if (w.NH3_rich - w.NH3_poor < 0.005)
+    error("w_NH3_rich - w_NH3_poor < 0.005")
+end
+if (w.NH3_poor < 0)
+    error("w_NH3_poor < 0")
+end
 % Mass flows
 if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
     error("mass flow is negativ")
@@ -253,37 +252,17 @@ end
 %% Strong solution after SHEX
 % Low pressure
 h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich;
-try
-    T.sol_des_in = refpropm('T','P',p.mid/1000,'H',h.sol_des_in,'AMMONIA','WATER',[w.NH3_rich (1-w.NH3_rich)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
-end
+T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
 % High pressure
 h.sol_des_inI = (m.sol_poorI*h.sol_des_outI + m.sol_richI*h.sol_pump_outI - m.sol_poorI*h.sol_valve_inI) / m.sol_richI;
-try
-    T.sol_des_inI = refpropm('T','P',p.cond/1000,'H',h.sol_des_inI,'AMMONIA','WATER',[w.NH3_richI (1-w.NH3_richI)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI-h.sol_pump_outI)/cp.sol_pump_outI;
-end
+T.sol_des_inI = T.sol_pump_outI + (h.sol_des_inI-h.sol_pump_outI)/cp.sol_pump_outI;
 %% Poor solution after valve
 % Low pressure
 h.sol_abs_in = h.sol_valve_in;
-try
-    T.sol_abs_in = refpropm('T','P',p.evap/1000,'H',h.sol_abs_in,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_abs_in = T.sol_valve_in;
-end
+T.sol_abs_in = T.sol_valve_in;
 % High pressure
 h.sol_abs_inI = h.sol_valve_inI;
-try
-    T.sol_abs_inI = refpropm('T','P',p.mid/1000,'H',h.sol_abs_inI,'AMMONIA','WATER',[w.NH3_poorI (1-w.NH3_poorI)]);
-catch
-    % Refprop fails for specific enthalpy values
-    T.sol_abs_inI = T.sol_valve_inI;
-end
+T.sol_abs_inI = T.sol_valve_inI;
 %-------------------------------------------------------------------------%
 %% Post processing
 % Fluxes over system boundary
