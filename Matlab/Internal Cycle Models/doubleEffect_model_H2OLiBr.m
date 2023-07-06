@@ -315,7 +315,7 @@ h.sol_abs_in = h.sol_valve_in;
 T.sol_abs_in = T.sol_valve_in;
 cp.sol_abs_in_mol = Calc_cp_from_T_X_LiBrSol_Patek(T.sol_abs_in,x.LiBr_poor);
 cp.sol_abs_in = cp.sol_abs_in_mol/(x.LiBr_poor*M_LiBr + x.H2O_poor*M_H2O);
-%% Poor solution I after valve
+%% Poor solution I after valveI
 h.sol_abs_inI = h.sol_valve_inI;
 T.sol_abs_inI = T.sol_valve_inI;
 cp.sol_abs_in_molI = Calc_cp_from_T_X_LiBrSol_Patek(T.sol_abs_inI,x.LiBr_poorI);
