@@ -1,4 +1,4 @@
-# Work in Progess!! Models can be used but documentations is not complete yet!
+# Work in Progess!! Models can be used but documentation is not complete yet!
 
 # SorpPump
 Repository for sharing of sorption heat pump models.
