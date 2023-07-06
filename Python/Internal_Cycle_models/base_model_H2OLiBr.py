@@ -1,6 +1,6 @@
-import numpy
 from Fluids import LiBrSol, H2O
 import CoolProp.CoolProp as CP
+import numpy
 import sys
 
 
@@ -177,6 +177,7 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
             b = numpy.array([Q.dec,             0,                                  0])
         case _:
             sys.exit('AKM requirement is not defined properly. Use Q_des or Q_evap')
+    # Solve linear system of equations
     y = numpy.linalg.solve(A, b)
     m.sol_rich = y[0] 
     m.ref = y[1] 
