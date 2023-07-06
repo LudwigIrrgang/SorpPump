@@ -64,7 +64,7 @@ def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     M_LiBr = 0.08685                 # [kg/mol]
     M_H2O = 0.018015268              # [kg/mol]
     # -----------------------------------------------------------------------  #
-    # # Initialisation of variable classes for storing calculatioin results
+    # # Initialisation of variable classes for storing calculation results
     # -----------------------------------------------------------------------  #
     class var:
         i = 0
