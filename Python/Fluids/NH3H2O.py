@@ -371,7 +371,6 @@ def NH3inSolution_Calc_X_PT(pressure, Temp):
 def NH3inSolution_Calc_X_PT_REFPROP(pressure, Temp):
     """
     NH3inSolution_Calc_X_PT
-    Since the solution is heated above saturation, some refrigerant must be
     This function calculates the concentration of the saturated NH3-H2O
     solution from pressure and temperature
     Input units: Pressure [Pa], Tempreature [K]
@@ -381,8 +380,7 @@ def NH3inSolution_Calc_X_PT_REFPROP(pressure, Temp):
     a = 0.999
     b = 0.001
     try:
-        #minPressure = Calc_p_from_T_X(Temp,NH3_conversion_w_X("X", b))
-        minPressure = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut="P", iUnits=2, iMass=1, iFlag=0, a=Temp, b=0, z=[b, (1-b)]).Output[0] * 1000
+        minPressure = RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut="P", iUnits=2, iMass=1, iFlag=0, a=Temp, b=0, z=[b, (1-b)]).Output[0] * 10**6 # REFPROP uses MPa
     except:
         print("Calculation failed in two phase region - only water in solution")
         wNH3 = 0  # only water present in solution
@@ -391,7 +389,7 @@ def NH3inSolution_Calc_X_PT_REFPROP(pressure, Temp):
         print('Pressure not in two phase region')
         wNH3 = 0
     else:
-        f = lambda w : pressure - RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut="P", iUnits=2, iMass=1, iFlag=0, a=Temp, b=0, z=[w, (1-w)]).Output[0] * 1000
+        f = lambda w: pressure - RP.REFPROPdll(hFld="AMMONIA;WATER", hIn="TQ", hOut="P", iUnits=2, iMass=1, iFlag=0, a=Temp, b=0, z=[w, (1-w)]).Output[0] * 10**6 # REFPROP uses MPa
         while abs(f(b)) > 10:  # corresponds to 0.1 kPa
             if f((a + b) / 2) < 0:  # half slitting technique
                 a = (a + b) / 2
