@@ -14,8 +14,6 @@ import CoolProp.CoolProp
 # ----------------------------------------------------------------------- #
 from Fluids import LiBrSol, H2O 
 from Internal_Cycle_models import base_model_H2OLiBr, base_model_NH3H2O, doubleEffect_model_H2OLiBr, doubleLift_model_H2OLiBr, doubleLift_model_NH3H2O, doubleEffect_model_NH3H2O
-print("--- %s seconds ---" % (time.time() - start_time))
-
 # ----------------------------------------------------------------------- #
 # Define functions for printing and storing the results
 # ----------------------------------------------------------------------- #
@@ -64,22 +62,16 @@ def save_results_to_csv(T, p, h, m, w, eta, Q, PP, s):
     df_PP["propertie"] = "PP"
     df_s = pandas.DataFrame.from_dict(s.__dict__, orient="index")
     df_s["propertie"] = "s"
-
-    df_result = pandas.concat([df_T,df_p,df_h,df_m,df_w, df_eta, df_Q, df_PP, df_s ])
+    df_result = pandas.concat([df_T, df_p, df_h, df_m, df_w, df_eta, df_Q, df_PP, df_s])
     string_csv = input("name or location for storing the result .csv file without \".csv\": ")
     result_folder = "Results"
     df_result.to_csv(result_folder + "\\" + string_csv +".csv", sep=";")
     print('The results are stored in: ' + result_folder)
-
 # ----------------------------------------------------------------------- #
-# Define the class for handeling the variables, and initialise them
+# Define the class for handling the variables, and initialise them
 # ----------------------------------------------------------------------- #
-
-
 class var():
     i = 0
-
-
 T = var()
 p = var()
 h = var()
@@ -88,12 +80,10 @@ eta = var()
 Q = var()
 HX = var()
 s = var()
-
 # ----------------------------------------------------------------------- #
 # Make input decision: manual in python-file or step py step through input()
 # ----------------------------------------------------------------------- #
-external_input = False   # if set to False all information have to be changed in the python file
-
+external_input = False   # False - Input in file; True - Input through Console
 # ----------------------------------------------------------------------- #
 # ----------------------------------------------------------------------- #
 # Make the inputs for the model
@@ -101,13 +91,13 @@ external_input = False   # if set to False all information have to be changed in
 # ----------------------------------------------------------------------- #
 if not external_input:
 
-    working_fluid = "LiBr_H2O"  # Choose the working fluid ("NH3_H2O" or "LiBr_H2O")
+    working_fluid = "NH3_H2O"  # Choose the working fluid ("NH3_H2O" or "LiBr_H2O")
 
-    cycle_model = "base"        # Choose the cycle_model ("base", "DEK" or "DLK")
+    cycle_model = "DL"        # Choose the cycle_model ("base", "DE" or "DL")
 
     save_as_csv = "True"        # Save the results as .csv? ("True" or "False")
 
-    # Temperature informations needed:
+    # Temperature information needed:
     T.evap = 278.15
     T.sol_abs_out = 306.15
     T.sol_des_out = 350
@@ -132,17 +122,14 @@ if not external_input:
     HX.T_PP_SHEXI = 3
     HX.T_PP_cond_int = 3
 
-    # # Additional Parameters needed based on the differnt cycle types an working fluids
-    # For both LiBr-H2O and NH3-H2O
+    # # Additional Parameters needed based on the different cycle types an working fluids
 
-    # Based on cycle, see discription behind value
+    T.cond_int = 352.77         # DE
+    T.sol_des_outI = 410.15     # DE & DL
+    T.sol_abs_outI = 306.15     # DL
 
-    T.cond_int = 352.77         # DEK
-    T.sol_des_outI = 410.15     # DEK & DLK
-    T.sol_abs_outI = 306.15     # DLK 
-
-    HX.T_PP_SHEXI = 3           # DEK & DLK
-    HX.T_PP_cond_int = 3        # DEK
+    HX.T_PP_SHEXI = 3           # DE & DL
+    HX.T_PP_cond_int = 3        # DE
 
     # all cycle types
     HX.dT_ref_des = 5
@@ -156,7 +143,7 @@ elif external_input:
     # ----------------------------------------------------------------------- #
     working_fluid = input("Choose the working fluid (\"NH3_H2O\" or \"LiBr_H2O\") :")
 
-    cycle_model = input("Choose the cycle_model (\"base\", \"DEK\" or \"DLK\") :")
+    cycle_model = input("Choose the cycle_model (\"base\", \"DE\" or \"DL\") :")
 
     save_as_csv = input("Save the results as .csv? (True or False):")
 
@@ -175,13 +162,13 @@ elif external_input:
 
     Q.dec = float(input("Q_evap or Q_des based on s.requirement = ? [W]"))
 
-    eta.pump = float(input("Efficiecy of the pump = ? "))
+    eta.pump = float(input("Efficiency of the pump = ? "))
 
     HX.T_PP_SHEX = float(input("Heat exchanger parameter HX.T_PP_SHEX = ? "))
     HX.T_PP_RHEX = float(input("Heat exchanger parameter HX.T_PP_RHEX = ? "))
     HX.T_PP_cond = float(input("Heat exchanger parameter HX.T_PP_cond = ? "))
 
-    if cycle_model == "DEK":
+    if cycle_model == "DE":
         T.sol_des_outI = float(input("T.sol_des_outI = ? [K]"))
 
         HX.T_PP_SHEXI = float(input("Heat exchanger parameter HX.T_PP_SHEXI = ? "))
@@ -191,7 +178,7 @@ elif external_input:
             HX.dT_ref_des = float(input("Heat exchanger parameter HX.dT_ref_des= ? "))
             HX.dT_ref_desI = float(input("Heat exchanger parameter HX.dT_ref_desI= ? "))
     
-    elif cycle_model == "DLK":
+    elif cycle_model == "DL":
         T.sol_abs_outI = float(input("T.sol_abs_outI = ? [K]"))
         T.sol_des_outI = float(input("T.sol_des_outI = ? [K]"))
 
@@ -231,7 +218,7 @@ if cycle_model == "base":
     else:
         sys.exit("Working fluid is not defined!")
 
-elif cycle_model == "DEK":
+elif cycle_model == "DE":
     if working_fluid == "LiBr_H2O":
         T, p, h, m, w, eta, Q, PP, s = doubleEffect_model_H2OLiBr.doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s)
         print("------------------------------double_effect_H2O_LiBr------------------------------")
@@ -253,7 +240,7 @@ elif cycle_model == "DEK":
     else:
         sys.exit("Working fluid is not defined!")
 
-elif cycle_model == "DLK":
+elif cycle_model == "DL":
     if working_fluid == "LiBr_H2O":
         T, p, h, m, w, eta, Q, PP, s = doubleLift_model_H2OLiBr.doubleLift_model_H2OLiBr(T, p, h, m, eta, Q, HX, s)
         print("------------------------------double_lift_H2O_LiBr------------------------------")
