@@ -248,28 +248,6 @@ eta.RHEX = (h.ref_abs_in-h.ref_evap_out)/(h.RHEXideal-h.ref_evap_out);
 eta.SHEX = (h.sol_des_in-h.sol_pump_out)/(h.sol_des_out-h.sol_pump_out);
 % COP
 PP.COP = Q.evap/(Q.des + PP.W_pump);
-% Reversible COP
-% Thermodynamic average temperatures
-% Desorber
-s.sol_des_in = Calc_s_from_T_X_LiBrSol_Patek(T.sol_des_in,x.LiBr_rich)/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O);
-s.sol_des_out = Calc_s_from_T_X_LiBrSol_Patek(T.sol_des_out,x.LiBr_poor)/(x.LiBr_poor*M_LiBr + x.H2O_poor*M_H2O);
-s.ref_des_out = CoolProp.PropsSI('S','T',T.ref_des_out,'P',p.cond,'Water');
-T.des_thermo_ave = Q.des/((m.ref*s.ref_des_out+m.sol_poor*s.sol_des_out)-m.sol_rich*s.sol_des_in);
-% Evaporator
-s.ref_evap_in = CoolProp.PropsSI('S','H',h.ref_evap_in,'P',p.evap,'Water');
-s.ref_evap_out = CoolProp.PropsSI('S','H',h.ref_evap_out,'P',p.evap,'Water');
-T.evap_thermo_ave = Q.evap/(m.ref*(s.ref_evap_out-s.ref_evap_in));
-% Cooling
-s.ref_cond_in = CoolProp.PropsSI('S','H',h.ref_cond_in,'P',p.cond,'Water');
-s.ref_cond_out = CoolProp.PropsSI('S','H',h.ref_cond_out,'P',p.cond,'Water');
-s.sol_abs_in = Calc_s_from_T_X_LiBrSol_Patek(T.sol_abs_in,x.LiBr_poor)/(x.LiBr_poor*M_LiBr + x.H2O_poor*M_H2O); % not accurate since solution can be subcooled
-s.sol_abs_out = Calc_s_from_T_X_LiBrSol_Patek(T.sol_abs_out,x.LiBr_poor)/(x.LiBr_poor*M_LiBr + x.H2O_poor*M_H2O);
-s.ref_abs_in = CoolProp.PropsSI('S','H',h.ref_abs_in,'P',p.evap,'Water');
-T.cool_thermo_ave = (Q.abs+Q.cond)/(m.ref*(s.ref_cond_out-s.ref_cond_in)+m.sol_rich*s.sol_abs_out-m.sol_poor*s.sol_abs_in-m.ref*s.ref_abs_in);
-% COP_rev (J. Albers, TU Berlin)
-PP.COP_rev = (1/T.cool_thermo_ave-1/T.des_thermo_ave)/(1/T.evap_thermo_ave-1/T.cool_thermo_ave);
-% Thermodynamische Güte (J. Albers)
-PP.zeta_thermodynamic = PP.COP/PP.COP_rev;
 % Throttle loss
 PP.my_throttle = CoolProp.PropsSI('Q','H',h.ref_valve_in,'P',p.evap,'Water');
 % Circulation
