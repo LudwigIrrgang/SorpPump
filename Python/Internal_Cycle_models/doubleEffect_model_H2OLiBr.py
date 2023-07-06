@@ -8,6 +8,19 @@ import sys
 def doubleEffect_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     """
     # Function Double Effect Model H2OLiBr (Parallel Flow Configuration)
+    Author  : Ludwig Irrgang
+    Date    : 01.09.2022
+    Copyright information:
+    Ludwig Irrgang
+    Lehrstuhl für Energiesysteme
+    TUM School of Engineering and Design
+    Technische Universität München
+    Boltzmannstr. 15 
+    85748 Garching b. München
+    ludwig.irrgang@tum.de
+
+    # Input/ Output
+    Input:
     Initialize structs with:
     - T.evap
     - T.sol_abs_out
