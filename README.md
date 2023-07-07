@@ -22,14 +22,14 @@ For the H2O-LiBr models the software CoolProp is used for refrigerant state calc
 For the NH3-H2O models additionally the software REFPROP is used for solution state calculation which is licensed. More information can be found here: https://pages.nist.gov/REFPROP-docs/#purchasing-refprop
 
 ##  Contact
-Ludwig Irrgang, M. Sc.
-Research Associate
- 
-Lehrstuhl für Energiesysteme
-Technische Universität München
-Boltzmannstr. 15
-85748 Garching b. München
- 
+Ludwig Irrgang, M. Sc. \
+Research Associate \
+\
+Lehrstuhl für Energiesysteme \
+Technische Universität München \
+Boltzmannstr. 15 \
+85748 Garching b. München \
+\
 ludwig.irrgang@tum.de
 
 
