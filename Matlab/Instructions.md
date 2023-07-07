@@ -1,12 +1,12 @@
 # Matlab Absorption Heat Pump Models
 ## Cycle configrurations
 The following cylce configurations are available:
-- Single Effect
-- Double Effect
-- Double Lift
-\n The following working fluids are available:
-- H2O-LiBr
-- NH3-H2O
+* Single Effect
+* Double Effect
+* Double Lift
+The following working fluids are available:
+* H2O-LiBr
+* NH3-H2O
 
 ## Necessary Software
 For the H2O-LiBr models the software CoolProp is used for refrigerant state calculation which is available as Open-Source tool here: http://www.coolprop.org/v4/HowGetIt.html 
