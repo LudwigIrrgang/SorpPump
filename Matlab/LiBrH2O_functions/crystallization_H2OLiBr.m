@@ -1,6 +1,7 @@
 function [CritValue] = crystallization_H2OLiBr(decider,value)
 % ---------------------------------------------------------------------- %
 % crystallization
+% Uses data and formulations from Boryta 1970
 % Calculates critical Temperatures or concentrations for given value
 % Use "T" if Input is temperature as decider value
 % Use "w" if Input is mass fraction of LiBr in solution as decider value

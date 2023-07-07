@@ -1,18 +1,9 @@
 function [T, p, h, m, w, eta, Q, PP, s] = AHP(T,HX,Q,s,eta)
-%% Absorption Heat Pump
-% Calculates internal and external state points of:
-% - Single effect
-% - Double effect (parallel)
-% - Double lift
-% Absorption chiller with the following working fluids:
-% - Lithium bromide/ water
-% - Water/ ammonia
-% Make sure that all necessary functions can be called correctly
-% See run_AHP.m for example code
+%% Function Absorption Heat Pump
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 09.01.2023
+Date    : 01.07.2023
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -25,33 +16,15 @@ The distibution of this script and all incoperated models is not permitted
 without permission of the owner.
 %}
 % ----------------------------------------------------------------------- %
-%% Necessary inputs
-% Temperatures
-%{
--   T.ext_des_in        (Heat source temperature)
--   T.ext_evap_out      (Cold output temperature)
--   T.ext_evap_in       (Inlet temperature of cold )
--   T.ext_abs_in        (Heat sink temperature at absorber)
--   T.ext_cond_in       (Heat sink temperature at condenser)
-%}
-% Approach temperatures
-%{
--   HX.T_PP_evap        (Evaporator approach temperature)
--   HX.T_PP_abs         (Absorber approach temperature)
--   HX.T_PP_des         (Desorber approach temperature)
--   HX.T_PP_cond        (Condenser approach temperature)
--   HX.T_PP_SHEX        (Solution heat exchanger approach temperature)
--   HX.T_PP_SHEXI       (Solution heat exchanger approach temperature)
--   HX.T_PP_RHEX        (Refrigerant heat exchanger approach temperature)
--   HX.T_PP_cond_int    (Evaporation approach temperature)
--   HX.SC_cond          (Subcooling at condenser)
--   HX.dT_ref_des       (Difference between solution and refrigerant desober exit temperatures)
--   HX.dT_ref_desI      (Difference between solution and refrigerant desoberI exit temperatures)
-%}
-% Efficiencies
-%{
--   eta.pump            (Efficiency of pump in solution circuit)
-%}
+% Calculates internal and external state points of:
+% - Single effect
+% - Double effect (parallel)
+% - Double lift
+% Absorption chiller with the following working fluids:
+% - Lithium bromide/ water
+% - Water/ ammonia
+% Make sure that all necessary functions can be called correctly
+% See run_AHP.m for example code
 % ----------------------------------------------------------------------- %
 %% Initialize Structs
 h(1) = struct();

@@ -1,7 +1,8 @@
 function cp = Calc_cp_from_T_X_LiBrSol_Patek(T,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_cp_from_T_X_LiBrSol_Patek
-% Uses coefficients and formula obtained from Patek 2006
+% Uses coefficients and formula obtained from Patek and Klomfar 2006
+% DOI: 10.1016/j.ijrefrig.2005.10.007
 % Input:
 %       -   Temperature of Solution T                                   [K]
 %       -   Molar Concentration X of LiBr in Solution                   [-]

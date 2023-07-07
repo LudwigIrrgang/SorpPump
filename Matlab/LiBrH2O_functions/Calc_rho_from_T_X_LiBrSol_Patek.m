@@ -1,7 +1,8 @@
 function rho = Calc_rho_from_T_X_LiBrSol_Patek(T,X_mol_LiBr)
 % ---------------------------------------------------------------------- %
 % Calc_rho_from_T_X_LiBrSol_Patek
-% Uses coefficients and formula obtained from Patek 2006
+% Uses coefficients and formula obtained from Patek and Klomfar 2006
+% DOI: 10.1016/j.ijrefrig.2005.10.007
 % Input:
 %       -   Temperature of Solution T                                   [K]
 %       -   Molar Concentration X of LiBr in Solution                   [-]
@@ -13,7 +14,6 @@ if nargin<1||isempty(T),error('Input Argument:Temperature missing');end
 %% Constants
 T_c = 647.096;              %[K]
 rho_c = 17.873;             %[mol/m^3]
-RMS = 0.44 * 10^-3;         %[-]
 % Table 5
 Koef_a = [1.746;4.709];
 Koef_t = [0;6];

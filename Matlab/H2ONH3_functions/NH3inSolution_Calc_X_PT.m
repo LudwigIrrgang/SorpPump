@@ -3,6 +3,7 @@ function wNH3 = NH3inSolution_Calc_X_PT(Pressure,Temp)
 % NH3inSolution_Calc_X_PT
 % This function calculates the concentration of the saturated NH3-H2O
 % solution from pressure and temperature
+% Make sure that REFPROP can be called correctly
 % Input units: Pressure [Pa], Tempreature [K]
 % ---------------------------------------------------------------------- %
 if nargin<2||isempty(Pressure),error('Input Argument:Pressure missing');end

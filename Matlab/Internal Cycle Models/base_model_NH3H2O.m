@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = base_model_NH3H2O(T, p, h, m, eta, Q, 
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 01.09.2022
+Date    : 01.07.2023
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -167,25 +167,6 @@ m.sol_rich = x(1);
 m.ref = x(2);
 m.sol_poor = x(3);
 %-------------------------------------------------------------------------%
-%% Check
-% Refrigerant concentrations
-if (w.NH3_rich < w.NH3_poor)
-    error("w_NH3_rich < w_NH3_poor")
-end
-if (w.NH3_rich < 0)
-    error("w_NH3_rich < 0")
-end
-if (w.NH3_poor < 0)
-    error("w_NH3_poor < 0")
-end
-if (w.NH3_rich - w.NH3_poor < 0.005)
-    error("w_NH3_rich - w_NH3_poor < 0.005")
-end
-% Mass flows
-if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
-    error("mass flow is negativ")
-end
-%-------------------------------------------------------------------------%
 %% Rich solution after SHEX
 h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich;
 T.sol_des_in = T.sol_pump_out + (h.sol_des_in-h.sol_pump_out)/cp.sol_pump_out;
@@ -218,6 +199,23 @@ PP.energyBalance = Q.des + Q.evap + PP.W_pump + Q.cond + Q.abs;
 PP.massBalance = m.ref + m.sol_poor - m.sol_rich;
 %-------------------------------------------------------------------------%
 %% Check
+% Refrigerant concentrations
+if (w.NH3_rich < w.NH3_poor)
+    error("w_NH3_rich < w_NH3_poor")
+end
+if (w.NH3_rich < 0)
+    error("w_NH3_rich < 0")
+end
+if (w.NH3_poor < 0)
+    error("w_NH3_poor < 0")
+end
+if (w.NH3_rich - w.NH3_poor < 0.005)
+    error("w_NH3_rich - w_NH3_poor < 0.005")
+end
+% Mass flows
+if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
+    error("mass flow is negativ")
+end
 % Energy and mass balance
 if (abs(PP.energyBalance) > 1)
     error("Energy is not conserved")

@@ -1,7 +1,8 @@
 function X = Calc_X_from_T_p_satLiBrSol_Patek(T,p)
 % ---------------------------------------------------------------------- %
 % Calc_X_from_T_p_LiBrSol_Patek
-% Uses coefficients and formula obtained from Patek 2006
+% Uses coefficients and formula obtained from Patek and Klomfar 2006
+% DOI: 10.1016/j.ijrefrig.2005.10.007
 % Input:
 %       -   Temperature of LiBR solution                                [K]
 %       -   Pressure of saturated solution                             [Pa]

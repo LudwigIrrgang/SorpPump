@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = doubleLift_model_NH3H2O(T, p, h, m, et
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 28.07.2022
+Date    : 01.07.2023
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -215,40 +215,6 @@ m.refI = y(6);
 m.sol_richI = y(7);
 m.sol_poorI = y(8);
 % ----------------------------------------------------------------------- %
-%% Check
-% Concentrations
-if (w.NH3_rich < 0)
-    error("w_NH3_rich < 0")
-end
-if (w.NH3_richI < 0)
-    error("w_NH3_richI < 0")
-end
-if (w.NH3_richI < w.NH3_poorI)
-    error("w_NH3_richI < w_NH3_poorI")
-end
-if (w.NH3_richI - w.NH3_poorI < 0.005)
-    error("w_NH3_richI - w_NH3_poorI < 0.005")
-end
-if (w.NH3_poorI < 0)
-    error("w_NH3_poorI < 0")
-end
-if (w.NH3_rich < w.NH3_poor)
-    error("w_NH3_rich < w_NH3_poor")
-end
-if (w.NH3_rich - w.NH3_poor < 0.005)
-    error("w_NH3_rich - w_NH3_poor < 0.005")
-end
-if (w.NH3_poor < 0)
-    error("w_NH3_poor < 0")
-end
-% Mass flows
-if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
-    error("mass flow is negativ")
-end
-if (m.refI<0 || m.sol_poorI<0 || m.sol_richI<0)
-    error("mass flow I is negativ")
-end
-% ----------------------------------------------------------------------- %
 %% Strong solution after SHEX
 % Low pressure
 h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich;
@@ -293,6 +259,38 @@ PP.energyBalance = Q.des + Q.desI + Q.evap + PP.W_pump + PP.W_pumpI + Q.cond + Q
 PP.massBalance = m.ref + m.sol_poor - m.sol_rich + m.refI + m.sol_poorI - m.sol_richI;
 % ----------------------------------------------------------------------- %
 %% Check
+% Concentrations
+if (w.NH3_rich < 0)
+    error("w_NH3_rich < 0")
+end
+if (w.NH3_richI < 0)
+    error("w_NH3_richI < 0")
+end
+if (w.NH3_richI < w.NH3_poorI)
+    error("w_NH3_richI < w_NH3_poorI")
+end
+if (w.NH3_richI - w.NH3_poorI < 0.005)
+    error("w_NH3_richI - w_NH3_poorI < 0.005")
+end
+if (w.NH3_poorI < 0)
+    error("w_NH3_poorI < 0")
+end
+if (w.NH3_rich < w.NH3_poor)
+    error("w_NH3_rich < w_NH3_poor")
+end
+if (w.NH3_rich - w.NH3_poor < 0.005)
+    error("w_NH3_rich - w_NH3_poor < 0.005")
+end
+if (w.NH3_poor < 0)
+    error("w_NH3_poor < 0")
+end
+% Mass flows
+if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
+    error("mass flow is negativ")
+end
+if (m.refI<0 || m.sol_poorI<0 || m.sol_richI<0)
+    error("mass flow I is negativ")
+end
 % Energy and mass balance
 if (abs(PP.energyBalance) > 1)
     error("Energy is not conserved")

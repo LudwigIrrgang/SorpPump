@@ -1,7 +1,8 @@
 function T = Calc_T_from_p_X_satLiBrSol_Patek(p,X)
 % ---------------------------------------------------------------------- %
 % Calc_T_from_p_X_satLiBrSol_Patek
-% Uses coefficients and formula obtained from Patek 2006
+% Uses coefficients and formula obtained from Patek and Klomfar 2006
+% DOI: 10.1016/j.ijrefrig.2005.10.007
 % Input:
 %       -   pressure of LiBr solution                                  [Pa]
 %       -   concentration of  solution                                  [-]

@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = base_model_H2OLiBr(T, p, h, m, eta, Q,
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 28.07.2022
+Date    : 01.07.2023
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -108,7 +108,6 @@ h.sol_abs_out_mol = Calc_h_from_T_X_LiBrSol_Patek(T.sol_abs_out,x.LiBr_rich);
 h.sol_abs_out = h.sol_abs_out_mol/(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O);
 rho.sol_abs_out_mol = Calc_rho_from_T_X_LiBrSol_Patek(T.sol_abs_out,x.LiBr_rich);
 rho.sol_abs_out = rho.sol_abs_out_mol*(x.LiBr_rich*M_LiBr + x.H2O_rich*M_H2O);
-v.sol_abs_out = 1/rho.sol_abs_out;
 % ----------------------------------------------------------------------- %
 % Prohibit crystallization in SHEX - necessary condensation pressure increase 
 T.sol_pump_out = T.sol_abs_out; % Is assumed to be isothermal
@@ -127,8 +126,7 @@ if (p.cond<p.cr)
 end
 % ----------------------------------------------------------------------- %
 % Pump
-w.pump = v.sol_abs_out*(p.cond - p.evap);
-h.sol_pump_out = h.sol_abs_out + w.pump/eta.pump;
+h.sol_pump_out = h.sol_abs_out + (1/rho.sol_abs_out)*(p.cond - p.evap)/eta.pump;
 %-------------------------------------------------------------------------%
 %% Refrigerant line
 % Desorber
@@ -138,7 +136,7 @@ h.ref_des_out = CoolProp.PropsSI('H','T',T.ref_des_out,'P',p.cond,'Water');
 T.ref_cond_in = T.ref_des_out;
 h.ref_cond_in = h.ref_des_out;
 if (T.ext_cond_in+HX.T_PP_cond<T.cond)
-    T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond; % Subcooling as low as possible
+    T.ref_cond_out = T.ext_cond_in + HX.T_PP_cond; % Sub-cooling as low as possible
     h.ref_cond_out = CoolProp.PropsSI('H','P',p.cond,'T',T.ref_cond_out,'Water');
 else
     T.ref_cond_out = T.cond;
@@ -196,32 +194,6 @@ m.sol_rich = y(1);
 m.ref = y(2);
 m.sol_poor = y(3);
 %-------------------------------------------------------------------------%
-%% Check
-% Refrigerant concentrations
-if (w.H2O_rich < w.H2O_poor)
-    error("w_H2O_rich < w_H2O_poor")
-end
-if (w.H2O_rich < 0)
-    error("w_H2O_rich < 0")
-end
-if (w.H2O_poor < 0)
-    error("w_H2O_poor < 0")
-end
-if (w.H2O_rich - w.H2O_poor < 0.005)
-    error("w_H2O_rich - w_H2O_poor < 0.005")
-end
-% Mass flow
-if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
-        error("mass flow is negativ")
-end
-% Crystallization and Violation where Patek is used
-% Weak Solution
-checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_abs_out,"Absorber exit");
-checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_pump_out,"Pump exit");
-% Strong solution
-checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_des_out,"Desorber exit");
-checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_valve_in,"SHEX exit poor sol.");
-%-------------------------------------------------------------------------%
 %% Rich solution after SHEX
 Q.SHEX = (h.sol_des_out - h.sol_valve_in)*m.sol_poor;
 h.sol_des_in = h.sol_pump_out + Q.SHEX/m.sol_rich;
@@ -258,10 +230,31 @@ PP.energyBalance = Q.des + Q.evap + PP.W_pump + Q.cond + Q.abs;
 PP.massBalance = m.ref + m.sol_poor - m.sol_rich;
 %-------------------------------------------------------------------------%
 %% Check
+% Refrigerant concentrations
+if (w.H2O_rich < w.H2O_poor)
+    error("w_H2O_rich < w_H2O_poor")
+end
+if (w.H2O_rich < 0)
+    error("w_H2O_rich < 0")
+end
+if (w.H2O_poor < 0)
+    error("w_H2O_poor < 0")
+end
+if (w.H2O_rich - w.H2O_poor < 0.005)
+    error("w_H2O_rich - w_H2O_poor < 0.005")
+end
+% Mass flow
+if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
+        error("mass flow is negativ")
+end
 % Crystallization and Violation where Patek is used
-% Weak Solution
+% Rich Solution
+checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_abs_out,"Absorber exit");
+checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_pump_out,"Pump exit");
 checkForViolation_H2OLiBr(w.LiBr_rich,T.sol_des_in,"SHEX exit rich sol.");
-% Strong solution
+% Poor solution
+checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_des_out,"Desorber exit");
+checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_valve_in,"SHEX exit poor sol.");
 checkForViolation_H2OLiBr(w.LiBr_poor,T.sol_abs_in,"Valve exit");
 % Energy and mass balance
 if (abs(PP.energyBalance) > 0.1)

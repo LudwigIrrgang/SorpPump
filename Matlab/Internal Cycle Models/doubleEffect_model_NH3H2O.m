@@ -3,7 +3,7 @@ function [T, p, h, m, w, eta, Q, PP, s] = doubleEffect_model_NH3H2O(T, p, h, m, 
 % ----------------------------------------------------------------------- %
 %{
 Author  : Ludwig Irrgang
-Date    : 02.09.2022
+Date    : 01.07.2023
 Copyright information:
 Ludwig Irrgang
 Lehrstuhl für Energiesysteme
@@ -94,7 +94,7 @@ p.cond_int = CoolProp.PropsSI('P','T',T.cond_int,'Q',0,'Ammonia');
 w.NH3_rich = NH3inSolution_Calc_X_PT(p.evap/1000,T.sol_abs_out);
 w.NH3_poor = NH3inSolution_Calc_X_PT(p.cond/1000,T.sol_des_out);
 if(w.NH3_rich<w.NH3_poor)
-    w.NH3_poor = w.NH3_rich-0.05; % Ausgasungsbreite auf 5 % eingestellt
+    w.NH3_poor = w.NH3_rich-s.delta_w; % Ausgasungsbreite über delta_w eingestellt
     T.sol_des_out = refpropm('T','P',p.cond/1000,'Q',0,'AMMONIA','WATER',[w.NH3_poor (1-w.NH3_poor)]);
     T.cond_int = T.sol_des_out + HX.T_PP_cond_int;
     p.cond_int = CoolProp.PropsSI('P','T',T.cond_int,'Q',0,'Ammonia');
@@ -225,37 +225,6 @@ m.ref = y(3);
 m.sol_rich = y(4);
 m.sol_poor = y(5);
 % ----------------------------------------------------------------------- %
-%% Check
-% Concentrations
-if (w.NH3_rich < 0)
-    error("w_NH3_rich < 0")
-end
-if (w.NH3_poor < 0)
-    error("w_NH3_poor < 0")
-end
-if (w.NH3_rich < w.NH3_poor)
-    error("w_NH3_rich < w_NH3_poor")
-end
-if (w.NH3_rich - w.NH3_poor < 0.005)
-    error("w_NH3_rich - w_NH3_poor < 0.005")
-end
-if (w.NH3_poorI < 0)
-    error("w_NH3_poorI < 0")
-end
-if (w.NH3_rich < w.NH3_poorI)
-    error("w_NH3_rich < w_NH3_poorI")
-end
-if (w.NH3_rich - w.NH3_poorI < 0.005)
-    error("w_NH3_rich - w_NH3_strongI < 0.005")
-end
-% Mass flows
-if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
-    error("mass flow is negativ")
-end
-if (m.refI<0 || m.sol_poorI<0 || m.sol_richI<0)
-    error("mass flow I is negativ")
-end
-% ----------------------------------------------------------------------- %
 %% Rich solution after SHEX
 % Low pressure
 h.sol_des_in = (m.sol_poor*h.sol_des_out + m.sol_rich*h.sol_pump_out - m.sol_poor*h.sol_valve_in) / m.sol_rich;
@@ -299,6 +268,35 @@ PP.energyBalance = Q.des + Q.des_mid + Q.evap + PP.W_pump + PP.W_pumpI + Q.cond 
 PP.massBalance = (m.ref+m.refI) + (m.sol_poor+m.sol_poorI) - (m.sol_rich+m.sol_richI);
 % ----------------------------------------------------------------------- %
 %% Check
+% Concentrations
+if (w.NH3_rich < 0)
+    error("w_NH3_rich < 0")
+end
+if (w.NH3_poor < 0)
+    error("w_NH3_poor < 0")
+end
+if (w.NH3_rich < w.NH3_poor)
+    error("w_NH3_rich < w_NH3_poor")
+end
+if (w.NH3_rich - w.NH3_poor < 0.005)
+    error("w_NH3_rich - w_NH3_poor < 0.005")
+end
+if (w.NH3_poorI < 0)
+    error("w_NH3_poorI < 0")
+end
+if (w.NH3_rich < w.NH3_poorI)
+    error("w_NH3_rich < w_NH3_poorI")
+end
+if (w.NH3_rich - w.NH3_poorI < 0.005)
+    error("w_NH3_rich - w_NH3_strongI < 0.005")
+end
+% Mass flows
+if (m.ref<0 || m.sol_poor<0 || m.sol_rich<0)
+    error("mass flow is negativ")
+end
+if (m.refI<0 || m.sol_poorI<0 || m.sol_richI<0)
+    error("mass flow I is negativ")
+end
 % Energy and mass balance
 if (abs(PP.energyBalance) > 1)
     error("Energy is not conserved")
