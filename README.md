@@ -1,5 +1,3 @@
-# Work in Progess!! Models can be used but documentation is not complete yet!
-
 # SorpPump
 Repository for sharing of sorption heat pump models. The models are available as MATLAB or Python Code in the respective directory.
 
