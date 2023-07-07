@@ -4,7 +4,7 @@
 Repository for sharing of sorption heat pump models. The models are available as MATLAB or Python Code in the respective directory.
 
 ## Working Principle
-The working principle of the models is to solve energy and mass balances by using simplyfying assumptions.
+The working principle of the models is to solve energy and mass balances by using simplifying assumptions.
 
 ## Cycle configrurations
 The following cylce configurations are available:
