@@ -4,7 +4,7 @@ The following cylce configurations are available:
 - Single Effect
 - Double Effect
 - Double Lift
-The following working fluids are available:
+\n The following working fluids are available:
 - H2O-LiBr
 - NH3-H2O
 
