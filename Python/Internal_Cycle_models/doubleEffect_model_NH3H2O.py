@@ -1,7 +1,7 @@
 import CoolProp.CoolProp as CoolProp
 import math
 import numpy
-from Fluids import LiBrSol, NH3H2O, H2O
+from Fluids import LiBrSol, NH3H2O
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import os
 import sys

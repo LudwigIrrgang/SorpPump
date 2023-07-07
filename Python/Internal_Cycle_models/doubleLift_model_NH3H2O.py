@@ -1,5 +1,5 @@
 import CoolProp.CoolProp as CoolProp
-from Fluids import NH3H2O, H2O
+from Fluids import NH3H2O
 import numpy
 import math
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary

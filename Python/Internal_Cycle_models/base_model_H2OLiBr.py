@@ -1,4 +1,4 @@
-from Fluids import LiBrSol, H2O
+from Fluids import LiBrSol
 import CoolProp.CoolProp as CP
 import numpy
 import sys

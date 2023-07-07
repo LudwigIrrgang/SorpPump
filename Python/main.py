@@ -12,7 +12,7 @@ import CoolProp.CoolProp
 # ----------------------------------------------------------------------- #
 # Import the Fluids and Internal_Cycle_model modules
 # ----------------------------------------------------------------------- #
-from Fluids import LiBrSol, H2O 
+from Fluids import LiBrSol
 from Internal_Cycle_models import base_model_H2OLiBr, base_model_NH3H2O, doubleEffect_model_H2OLiBr, doubleLift_model_H2OLiBr, doubleLift_model_NH3H2O, doubleEffect_model_NH3H2O
 # ----------------------------------------------------------------------- #
 # Define functions for printing and storing the results
