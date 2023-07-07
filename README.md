@@ -10,7 +10,7 @@ The following cylce configurations are available:
 * Double Effect
 * Double Lift
 
-# Working Fluids
+## Working Fluids
 The following working fluids are available:
 * H2O-LiBr
 * NH3-H2O
