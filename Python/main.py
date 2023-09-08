@@ -12,7 +12,7 @@ import CoolProp.CoolProp
 # ----------------------------------------------------------------------- #
 # Import the Fluids and Internal_Cycle_model modules
 # ----------------------------------------------------------------------- #
-from Fluids import LiBrSol
+from Fluids import LiBrSol, H2O 
 from Internal_Cycle_models import base_model_H2OLiBr, base_model_NH3H2O, doubleEffect_model_H2OLiBr, doubleLift_model_H2OLiBr, doubleLift_model_NH3H2O, doubleEffect_model_NH3H2O
 # ----------------------------------------------------------------------- #
 # Define functions for printing and storing the results
@@ -65,7 +65,7 @@ def save_results_to_csv(T, p, h, m, w, eta, Q, PP, s):
     df_result = pandas.concat([df_T, df_p, df_h, df_m, df_w, df_eta, df_Q, df_PP, df_s])
     string_csv = input("name or location for storing the result .csv file without \".csv\": ")
     result_folder = "Results"
-    df_result.to_csv(result_folder + "\\" + string_csv +".csv", sep=";")
+    df_result.to_csv(result_folder + "\\" + string_csv + ".csv", sep=";")
     print('The results are stored in: ' + result_folder)
 # ----------------------------------------------------------------------- #
 # Define the class for handling the variables, and initialise them
@@ -91,52 +91,44 @@ external_input = False   # False - Input in file; True - Input through Console
 # ----------------------------------------------------------------------- #
 if not external_input:
 
-    working_fluid = "NH3_H2O"  # Choose the working fluid ("NH3_H2O" or "LiBr_H2O")
+    working_fluid = "LiBr_H2O"  # Choose the working fluid ("NH3_H2O" or "LiBr_H2O")
 
-    cycle_model = "DL"        # Choose the cycle_model ("base", "DE" or "DL")
+    cycle_model = "DE"        # Choose the cycle_model ("base", "DE" or "DL")
 
     save_as_csv = "True"        # Save the results as .csv? ("True" or "False")
 
-    # Temperature information needed:
-    T.evap = 278.15
-    T.sol_abs_out = 306.15
-    T.sol_des_out = 350
-    T.cond = 309.15
-    T.ext_cond_in = 303.15
-    T.cond_int = 380.77
+    # External temperature boundary conditions
+    # Heat source temperature
+    T.ext_des_in = 150 + 273.15
+    # Cold output temperature
+    T.ext_evap_out = 6 + 273.15
+    # Heat sink temperature
+    T.ext_abs_in = 30 + 273.15
+    T.ext_cond_in = 30 + 273.15
+
+    # Heat exchanger PP temperature differences
+    HX.T_PP_evap = 5
+    HX.T_PP_abs = 3
+    HX.T_PP_des = 3
+    HX.T_PP_cond = 3
+    HX.SC_cond = 0          # Defines subcooling at condenser
+    HX.T_PP_SHEX = 5
+    HX.T_PP_RHEX = 100
+    HX.T_PP_SHEXI = 3       # Only necessary for DE and DL
+    HX.T_PP_cond_int = 3    # Only necessary for DE
+    HX.dT_ref_des = 5       # Defines superheating of refrigerant after desorber
+    HX.dT_ref_desI = 5      # Defines superheating of refrigerant after desorber I
 
     # Defining which heat flow will be provided. Q_evap or Q_des?
     s.requirement = "Q_evap"
 
     # Value of heat flow
-    Q.dec = 10_000             # Q_des
+    Q.dec = 10000
 
     # Efficiency of the pump
-    eta.pump = 1    
+    eta.pump = 1
 
-    # Heat exchanger parameters
-    HX.T_PP_SHEX = 3
-    HX.T_PP_RHEX = 3
-    HX.T_PP_cond = 3
-    HX.T_PP_abs = 3
-    HX.T_PP_SHEXI = 3
-    HX.T_PP_cond_int = 3
 
-    # # Additional Parameters needed based on the different cycle types an working fluids
-
-    T.cond_int = 352.77         # DE
-    T.sol_des_outI = 410.15     # DE & DL
-    T.sol_abs_outI = 306.15     # DL
-
-    HX.T_PP_SHEXI = 3           # DE & DL
-    HX.T_PP_cond_int = 3        # DE
-
-    # all cycle types
-    HX.dT_ref_des = 5
-
-    # Double Effect + Double Lift
-    HX.dT_ref_desI = 5
-      
 elif external_input:
     # ----------------------------------------------------------------------- #
     # requesting all needed inputs 
@@ -150,13 +142,12 @@ elif external_input:
     # ----------------------------------------------------------------------- #
     # requesting inputs for input data
     # ----------------------------------------------------------------------- #
-    # input data which is needed for all cycle types
+    # Input data which is needed for all cycle types
 
-    T.evap = float(input("T.evap = ? [K]"))
-    T.sol_abs_out = float(input("T.sol_abs_out = ? [K]"))
-    T.sol_des_out = float(input("T.sol_des_out = ? [K]"))
-    T.cond = float(input("T.cond = ? [K]"))
-    T.ext_cond_in = float(input("T.ext_cond_in [K]"))
+    T.ext_evap_out = float(input("Cold output = ? [K]"))
+    T.ext_abs_in = float(input("Heat sink temperature = ? [K]"))
+    T.ext_cond_in = T.ext_abs_in
+    T.ext_des_in = float(input("Heat source temperature = ? [K]"))
 
     s.requirement = input("Which heat flow will be provided? (Q_evap or Q_des)")
 
@@ -168,31 +159,48 @@ elif external_input:
     HX.T_PP_RHEX = float(input("Heat exchanger parameter HX.T_PP_RHEX = ? "))
     HX.T_PP_cond = float(input("Heat exchanger parameter HX.T_PP_cond = ? "))
 
+    HX.T_PP_evap = float(input("Evaporator PP temperature difference = ? [K]"))
+    HX.T_PP_abs = float(input("Absorber PP temperature difference = ? [K]"))
+    HX.T_PP_des = float(input("Desorber PP temperature difference = ? [K]"))
+    HX.T_PP_cond = float(input("Condenser PP temperature difference = ? [K]"))
+    HX.SC_cond = float(input("Sub-cooling at condenser = ? [K]"))
+    HX.T_PP_SHEX = float(input("SHEX PP temperature difference = ? [K]"))
+    HX.T_PP_RHEX = float(input("RHEX PP temperature difference = ? [K]"))
+    HX.dT_ref_des = float(input("Refrigerant - solution temperature difference leaving desorber = ? [K]"))
+
     if cycle_model == "DE":
-        T.sol_des_outI = float(input("T.sol_des_outI = ? [K]"))
+        HX.T_PP_SHEXI = float(input("SHEXI PP temperature difference = ? [K]"))
+        HX.T_PP_cond_int = float(input("Internal condenser PP temperature difference = ? [K]"))
+        HX.dT_ref_desI = float(input("Refrigerant - solution temperature difference leaving desorber I = ? [K]"))
 
-        HX.T_PP_SHEXI = float(input("Heat exchanger parameter HX.T_PP_SHEXI = ? "))
-        HX.T_PP_cond_int = float(input("Heat exchanger parameter HX.T_PP_cond_int = ? "))
-
-        if working_fluid == "NH3_H2O":
-            HX.dT_ref_des = float(input("Heat exchanger parameter HX.dT_ref_des= ? "))
-            HX.dT_ref_desI = float(input("Heat exchanger parameter HX.dT_ref_desI= ? "))
-    
     elif cycle_model == "DL":
-        T.sol_abs_outI = float(input("T.sol_abs_outI = ? [K]"))
-        T.sol_des_outI = float(input("T.sol_des_outI = ? [K]"))
+        HX.T_PP_SHEXI = float(input("SHEXI PP temperature difference = ? [K]"))
+        HX.dT_ref_desI = float(input("Refrigerant - solution temperature difference leaving desorber I = ? [K]"))
 
-        HX.T_PP_SHEXI = float(input("Heat exchanger parameter HX.T_PP_SHEXI = ? "))
-
-        if working_fluid == "NH3_H2O":
-            HX.dT_ref_des = float(input("Heat exchanger parameter HX.dT_ref_des= ? "))
-            HX.dT_ref_desI = float(input("Heat exchanger parameter HX.dT_ref_desI= ? "))
-
-    elif cycle_model == "base":
-        if working_fluid == "NH3_H2O":
-            HX.dT_ref_des = float(input("Heat exchanger parameter HX.dT_ref_des= ? "))
     else:
-        sys.exit("Cycle model ist not defined!")  
+        sys.exit("Cycle model ist not defined!")
+
+
+# Calculate Internal temperatures for cycle model input
+T.sol_des_out = T.ext_des_in - HX.T_PP_SHEX
+T.evap = T.ext_evap_out - HX.T_PP_evap
+T.cond = T.ext_cond_in - HX.T_PP_cond - HX.SC_cond
+T.sol_abs_out = T.ext_abs_in + HX.T_PP_abs
+
+if cycle_model == "DE":
+    # Internal condenser
+    T.cond_int = T.cond + HX.dT_ref_des + HX.T_PP_cond_int
+    # Upper pressure desorber
+    T.sol_des_outI = T.sol_des_out
+    # Middle pressure desorber
+    T.sol_des_out = T.cond_int - HX.T_PP_cond_int
+elif cycle_model == "DL":
+    # Upper pressure desorber
+    T.sol_des_outI = T.sol_des_out
+    # Middle pressure absorber
+    T.sol_abs_outI = T.sol_abs_out
+else:
+    sys.exit("Cycle model ist not defined!")
 
 
 if cycle_model == "base":
