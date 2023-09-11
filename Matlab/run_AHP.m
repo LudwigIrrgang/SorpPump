@@ -67,7 +67,7 @@ addpath('.\Cycle Plot')
     HX.T_PP_SHEX =      5;       % Solution heat exchanger approach temperature
     HX.T_PP_SHEXI =     5;       % Solution heat exchanger approach temperature
     HX.T_PP_RHEX =      5;       % Refrigerant heat exchanger approach temperature
-    HX.T_PP_cond_int =  5;       % Evaporation approach temperature
+    HX.T_PP_cond_int =  5;       % Internal condenser approach temperature
     HX.SC_cond =        5;       % Subcooling at condenser
     HX.dT_ref_des =     5;       % Difference between solution and refrigerant desober exit temperatures
     HX.dT_ref_desI =    5;       % Difference between solution and refrigerant desoberI exit temperatures
