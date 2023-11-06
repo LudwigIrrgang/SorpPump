@@ -219,7 +219,7 @@ def base_model_H2OLiBr(T, p, h, m, eta, Q, HX, s):
     Q.evap = m.ref * (h.ref_evap_out - h.ref_evap_in)
     Q.abs = m.sol_rich * h.sol_abs_out - m.ref * h.ref_abs_in - m.sol_poor * h.sol_abs_in
     PP.W_pump = m.sol_rich * (h.sol_pump_out - h.sol_abs_out)
-    Q.des = m.ref * h.ref_des_out + m.sol_poor * h.sol_valve_in - m.sol_rich * h.sol_des_in
+    Q.des = m.ref * h.ref_des_out + m.sol_poor * h.sol_valve_in - m.sol_rich * h.sol_pump_out
     # Heat Exchanger
     Q.SHEX = m.sol_poor * (h.sol_des_out - h.sol_valve_in)
     Q.RHEX = m.ref * (h.ref_abs_in - h.ref_evap_out)
